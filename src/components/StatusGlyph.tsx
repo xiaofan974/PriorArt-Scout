@@ -1,4 +1,3 @@
-import React from 'react';
 import type { MatchStatus } from '../types/investigation';
 
 interface StatusGlyphProps {

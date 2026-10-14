@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowLeftIcon, CheckIcon, ChevronRightIcon, MenuIcon } from 'lucide-react';
 import { StatusPill } from '../StatusPill';
 import type { InvestigationStatus, InvestigationView } from '../../types/investigation';

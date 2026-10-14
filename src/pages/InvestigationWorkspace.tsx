@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowRightIcon, InfoIcon, RotateCcwIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SectionHeader } from '../components/SectionHeader';

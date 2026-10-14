@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRightIcon, CheckCircle2Icon, ChevronDownIcon, CircleIcon, Loader2Icon } from 'lucide-react';
 import { documents, features, revealAfterStep, searchQueries, traceSteps } from '../../data/demoInvestigation';

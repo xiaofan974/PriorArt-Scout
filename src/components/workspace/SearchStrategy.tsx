@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { SearchIcon } from 'lucide-react';
 import { searchQueries } from '../../data/demoInvestigation';

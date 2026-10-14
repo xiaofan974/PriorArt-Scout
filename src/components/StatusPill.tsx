@@ -1,4 +1,3 @@
-import React from 'react';
 import { Loader2Icon } from 'lucide-react';
 import type { InvestigationStatus } from '../types/investigation';
 

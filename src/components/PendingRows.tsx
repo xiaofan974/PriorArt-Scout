@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface PendingRowsProps {
   rows: number;
   label: string;

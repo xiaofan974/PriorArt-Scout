@@ -1,4 +1,3 @@
-import React from 'react';
 import { relevanceLabels } from '../utils/matchStatus';
 import type { RelevanceLevel } from '../types/investigation';
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRightIcon, InfoIcon, SparklesIcon } from 'lucide-react';
 
 interface NewInvestigationProps {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpenIcon, FileCheck2Icon, FilePlus2Icon, LockIcon, ScanSearchIcon, WorkflowIcon, XIcon } from 'lucide-react';
 import { StatusPill } from '../StatusPill';

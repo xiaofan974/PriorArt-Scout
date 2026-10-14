@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeftIcon, CheckIcon, DownloadIcon, PlusIcon, ScaleIcon } from 'lucide-react';
 import { SectionHeader } from '../components/SectionHeader';
 import { ReportSummary } from '../components/report/ReportSummary';

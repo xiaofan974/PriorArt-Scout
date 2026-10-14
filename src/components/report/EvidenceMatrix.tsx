@@ -1,4 +1,3 @@
-import React from 'react';
 import { StatusGlyph } from '../StatusGlyph';
 import { documents, features } from '../../data/demoInvestigation';
 import { featureCoverage, resolveEvidence } from '../../utils/evidence';

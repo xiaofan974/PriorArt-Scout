@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRightIcon, FileCheck2Icon, FilePlus2Icon, WorkflowIcon } from 'lucide-react';
 import { screenGuides, workflowSteps } from '../../data/researchGuide';
 import type { InvestigationView, WorkflowView } from '../../types/investigation';

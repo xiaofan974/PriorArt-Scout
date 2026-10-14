@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowLeftIcon, ShieldOffIcon } from 'lucide-react';
 import { GuideSection } from '../components/guide/GuideSection';
 import { GuideSectionNav } from '../components/guide/GuideSectionNav';

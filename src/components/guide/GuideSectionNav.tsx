@@ -1,4 +1,3 @@
-import React from 'react';
 import type { GuideSectionLink } from '../../types/guide';
 
 interface GuideSectionNavProps {

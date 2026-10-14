@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangleIcon } from 'lucide-react';
 import { StatusGlyph } from '../StatusGlyph';
 import { statusDefinitions } from '../../data/researchGuide';
