@@ -41,7 +41,7 @@ function request(
 describe('handleExtractFeaturesRequest', () => {
   it('does not statically import the OpenAI adapter', () => {
     const source = readFileSync(new URL('./extractFeaturesHandler.ts', import.meta.url), 'utf8');
-    expect(source).toMatch(/await import\(specifier\)/);
+    expect(source).toMatch(/await import\(['"]\.\/openaiExtract\.js['"]\)/);
     expect(source).not.toMatch(/^import \{[^}]*extractFeaturesFromModel[^}]*\} from ['"].\/openaiExtract/m);
   });
 

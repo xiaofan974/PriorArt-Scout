@@ -1,9 +1,8 @@
 {
   "framework": "vite",
   "functions": {
-    "api/extract-features.ts": {
-      "maxDuration": 30,
-      "includeFiles": "src/{server,config,utils,types}/**"
+    "api/extract-features.js": {
+      "maxDuration": 30
     }
   }
 }

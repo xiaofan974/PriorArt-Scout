@@ -88,10 +88,9 @@ function mapProviderError(error: unknown): ExtractHandlerResult {
 }
 
 async function loadExtractFromModel(): Promise<ExtractFromModel> {
-  // Keep the specifier from being a bundler string literal so the OpenAI SDK is
-  // not inlined into the serverless entry (ESM bundles crash on node-fetch).
-  const specifier = '.' + '/openaiExtract.js';
-  const adapter = (await import(specifier)) as {extractFeaturesFromModel: ExtractFromModel;};
+  // Literal specifier so esbuild includes this module in the CJS artifact.
+  // The OpenAI SDK stays external and is only required after the feature gate.
+  const adapter = await import('./openaiExtract.js');
   return adapter.extractFeaturesFromModel;
 }
 

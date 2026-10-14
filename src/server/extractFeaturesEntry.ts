@@ -1,4 +1,4 @@
-import { handleExtractFeaturesRequest } from '../src/server/extractFeaturesHandler.js';
+import { handleExtractFeaturesRequest } from './extractFeaturesHandler.js';
 
 export const config = {
   maxDuration: 30

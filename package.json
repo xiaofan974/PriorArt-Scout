@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "npx vite",
     "dev:api": "npx vercel dev --listen 3000",
-    "build": "npx vite build",
+    "build:api": "node scripts/build-api.mjs",
+    "build": "node scripts/build-api.mjs && npx vite build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "preview": "npx vite preview",
     "test": "vitest run",
