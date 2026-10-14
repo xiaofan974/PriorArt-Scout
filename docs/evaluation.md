@@ -97,3 +97,43 @@ npx tsc --noEmit
 ```
 
 The baseline numbers are asserted in `src/evaluation/helmetEval.test.ts`. The run uses the local corpus and fixture. It does not call EPO or OpenAI.
+
+## Retrieval experiment
+
+The candidate lives only in `src/evaluation/experimentalRetrieve.ts` and `src/evaluation/experimentalRetrieve.test.ts`. Application code does not import it. `src/retrieval/curatedRetrieve.ts` stays at a minimum of two shared terms. The candidate uses the same tokenizer, the same ranking, the same corpus, the same provisional labels, and the same cap of three passages. The only setting that changes is the minimum overlap: one shared term instead of two.
+
+Labels remain provisional Cursor drafts. Semantic grounding is not scored. The comparison describes this eight-passage corpus only and does not generalize beyond it.
+
+| Metric | Baseline (overlap ≥ 2) | Candidate (overlap ≥ 1) |
+|---|---|---|
+| Micro Recall@3 | 3/16 | 8/16 |
+| Macro Recall@3 | 0.1 | 22/45 (about 0.489) |
+| Observed precision | 3/3 | 8/13 |
+| Macro precision | 1, from F01 only | 2/3, from the five features that returned a hit |
+| Features with no hits | 5 | 1 (F03) |
+| False positives | 0 | 5 |
+
+Macro recall rises from 0.1 to 22/45 because F02, F04, F05, and F06 move off zero. F03 stays at recall 0, and that zero is included in the macro average.
+
+Generic-token matches among the newly retrieved relevant passages:
+
+- F02 `US8860570B2-C1` matches `data`, not accelerometer or gyroscope.
+- F04 `US10897947B2-C1` and `US10897947B2-D-GPS` match `emergency`.
+- F05 `US10897947B2-D-GPS` matches `gps`.
+- F06 `US10897947B2-C6` matches `emergency`. The token `cancel` does not match `cancellation`.
+
+Five new false positives:
+
+- F04 `US10897947B2-C6` on `emergency`.
+- F05 `US11406152B2-C1` and `US8860570B2-C1` on `connected`.
+- F06 `US10897947B2-C1` and `US10897947B2-D-GPS` on `emergency`.
+
+The three-result cap still decides ties by passage ID. For F06, three earlier passages that contain `emergency` fill the cap, so the relevant cancellation sentence `US11406152B2-D-CANCEL` is not returned even though it contains `cancel`. F01 is unchanged for the same reason: five passages tie on `smart` and `helmet`, and the cap keeps the three `US10897947B2` IDs.
+
+Decision: do not adopt the candidate. Recall is higher on this provisional set, precision is lower, and several new hits depend on a generic token.
+
+Reproduce the baseline and the experiment locally, with no EPO or OpenAI calls:
+
+```bash
+npx vitest run src/evaluation/helmetEval.test.ts src/evaluation/experimentalRetrieve.test.ts
+```
