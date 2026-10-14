@@ -1,15 +1,18 @@
 import { ArrowRightIcon, InfoIcon, SparklesIcon } from 'lucide-react';
+import { MIN_DESCRIPTION_LENGTH } from '../config/limits';
+import { resolveStartAction } from '../hooks/startAction';
 
 interface NewInvestigationProps {
   description: string;
+  exampleDescription: string;
+  liveExtractionEnabled: boolean;
   hasOpenInvestigation: boolean;
   onDescriptionChange: (value: string) => void;
   onTryExample: () => void;
-  onStart: () => void;
+  onStartDemo: () => void;
+  onStartLive: () => void;
   onResume: () => void;
 }
-
-const MIN_LENGTH = 40;
 
 const workflow = [
 { title: 'Extract features', text: 'Break the description into discrete technical features.' },
@@ -20,14 +23,18 @@ const workflow = [
 
 export function NewInvestigation({
   description,
+  exampleDescription,
+  liveExtractionEnabled,
   hasOpenInvestigation,
   onDescriptionChange,
   onTryExample,
-  onStart,
+  onStartDemo,
+  onStartLive,
   onResume
 }: NewInvestigationProps) {
   const length = description.trim().length;
-  const canStart = length >= MIN_LENGTH;
+  const action = resolveStartAction(description, exampleDescription, liveExtractionEnabled);
+  const canSubmit = action === 'demo' || action === 'live';
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:py-16">
@@ -48,15 +55,16 @@ export function NewInvestigation({
         What would you like to investigate?
       </h1>
       <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-2">
-        Describe an invention in plain English. PriorArt Scout will identify its technical features and investigate
-        potentially relevant patent literature.
+        Describe an invention in plain English. The helmet example runs the full synthetic demonstration. Custom
+        descriptions extract technical features only — they do not search patents.
       </p>
 
       <form
         className="mt-8"
         onSubmit={(e) => {
           e.preventDefault();
-          if (canStart) onStart();
+          if (action === 'demo') onStartDemo();
+          if (action === 'live') onStartLive();
         }}>
         
         <div className="rounded-xl border border-line bg-white shadow-[0_1px_2px_rgba(23,33,43,0.04)] transition-[border-color,box-shadow] duration-150 focus-within:border-accent/50 focus-within:shadow-[0_0_0_3px_rgba(15,118,110,0.12)]">
@@ -68,7 +76,10 @@ export function NewInvestigation({
             value={description}
             onChange={(e) => onDescriptionChange(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && canStart) onStart();
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && canSubmit) {
+                if (action === 'demo') onStartDemo();
+                if (action === 'live') onStartLive();
+              }
             }}
             rows={8}
             placeholder="e.g. A device that… using… and automatically…"
@@ -83,24 +94,40 @@ export function NewInvestigation({
               
               <SparklesIcon className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
               Try example
-              <span className="hidden font-normal text-ink-3 sm:inline">· Smart bicycle helmet</span>
+              <span className="hidden font-normal text-ink-3 sm:inline">· Helmet demonstration</span>
             </button>
             <div className="flex items-center gap-3">
               <span id="description-hint" className="hidden text-xs text-ink-3 sm:inline">
-                {canStart ? '⌘ Enter to start' : `${Math.max(MIN_LENGTH - length, 0)} more characters needed`}
+                {action === 'too_short' ?
+                `${Math.max(MIN_DESCRIPTION_LENGTH - length, 0)} more characters needed` :
+                action === 'demo' ?
+                'Runs the synthetic demonstration' :
+                action === 'live' ?
+                'Extracts features only · no patent search' :
+                'Live extraction is not available'}
               </span>
               <button
                 type="submit"
-                disabled={!canStart}
+                disabled={!canSubmit}
                 className="inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-2 text-[13px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-[#0E161E] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-ink-4">
                 
-                Start investigation
+                {action === 'live' ? 'Extract technical features' : 'Start demonstration'}
                 <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
         </div>
       </form>
+
+      {action === 'unavailable' &&
+      <div className="mt-4 flex gap-2.5 rounded-lg border border-partial-line bg-partial-soft px-4 py-3">
+          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-partial" aria-hidden="true" />
+          <p className="text-[13px] leading-relaxed text-ink-2">
+            Live feature extraction is not enabled in this deployment. Use Try example to run the complete helmet
+            demonstration, which does not require an API key.
+          </p>
+        </div>
+      }
 
       <section className="mt-12" aria-labelledby="workflow-heading">
         <h2 id="workflow-heading" className="text-[13px] font-medium text-ink-3">
@@ -125,8 +152,8 @@ export function NewInvestigation({
       <div className="mt-10 flex gap-2.5 rounded-lg bg-subtle px-4 py-3">
         <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
         <p className="text-[13px] leading-relaxed text-ink-2">
-          Investigations are preliminary and non-exhaustive. They are not a legal opinion and do not assess novelty,
-          patentability, infringement, or freedom to operate. This demo uses a synthetic document corpus.
+          The helmet demonstration uses a synthetic document corpus. Live extraction identifies technical features
+          only and does not search patents or assess novelty, patentability, infringement, or freedom to operate.
         </p>
       </div>
     </div>);

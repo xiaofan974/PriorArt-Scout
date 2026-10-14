@@ -3,7 +3,13 @@ export type InvestigationView = 'new' | 'workspace' | 'report' | 'guide';
 /** Views that belong to the investigation workflow (excludes reference pages such as the guide). */
 export type WorkflowView = Exclude<InvestigationView, 'guide'>;
 
-export type InvestigationStatus = 'idle' | 'running' | 'complete';
+export type InvestigationStatus =
+  | 'idle'
+  | 'running'
+  | 'complete'
+  | 'extracting'
+  | 'extracted'
+  | 'extraction_failed';
 
 export type MatchStatus = 'supported' | 'partial' | 'not_established';
 

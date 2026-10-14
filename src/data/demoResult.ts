@@ -12,8 +12,8 @@ import type { InvestigationResult } from '../types/investigation';
 
 /**
  * Assembles the synthetic helmet dataset into a single InvestigationResult.
- * Milestone 2 can replace `createDemoInvestigationResult()` with an API response
- * of the same shape without changing rendering components.
+ * Live extraction returns the same InvestigationResult shape with mode: 'live'
+ * and empty search/document/evidence arrays.
  */
 export function createDemoInvestigationResult(): InvestigationResult {
   return {

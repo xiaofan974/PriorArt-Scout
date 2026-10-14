@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx vite",
+    "dev:api": "npx vercel dev --listen 3000",
     "build": "npx vite build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "preview": "npx vite preview",
@@ -12,13 +13,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "openai": "^4.86.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "@emotion/react": "^11.13.3",
     "framer-motion": "^11.5.4",
-    "lucide-react": "0.522.0"
+    "lucide-react": "0.522.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@vercel/node": "^5.3.24",
     "@types/node": "^20.11.18",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",

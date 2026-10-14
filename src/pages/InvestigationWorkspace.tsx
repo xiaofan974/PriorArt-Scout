@@ -8,26 +8,29 @@ import { SearchStrategy } from '../components/workspace/SearchStrategy';
 import { DocumentRecord } from '../components/workspace/DocumentRecord';
 import { InvestigationTrace } from '../components/workspace/InvestigationTrace';
 import { InventionDescription } from '../components/workspace/InventionDescription';
+import { NotPerformed } from '../components/workspace/NotPerformed';
 import type { InvestigationResult, InvestigationStatus } from '../types/investigation';
 
 interface InvestigationWorkspaceProps {
   result: InvestigationResult;
   submittedDescription: string;
-  isCustomInput: boolean;
   status: InvestigationStatus;
   completedSteps: number;
+  extractionError: string | null;
   onViewReport: () => void;
   onStartNew: () => void;
+  onRetry: () => void;
 }
 
 export function InvestigationWorkspace({
   result,
   submittedDescription,
-  isCustomInput,
   status,
   completedSteps,
+  extractionError,
   onViewReport,
-  onStartNew
+  onStartNew,
+  onRetry
 }: InvestigationWorkspaceProps) {
   const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
   const [activeFeatureId, setActiveFeatureId] = useState<string | null>(null);
@@ -42,12 +45,15 @@ export function InvestigationWorkspace({
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
-  const { features, searchQueries, documents, traceSteps, revealAfterStep } = result;
+  const { features, searchQueries, documents, traceSteps, revealAfterStep, mode } = result;
+  const live = mode === 'live';
   const complete = status === 'complete';
-  const showFeatures = completedSteps >= revealAfterStep.features;
-  const showQueries = completedSteps >= revealAfterStep.queries;
-  const showDocuments = completedSteps >= revealAfterStep.documents;
-  const comparisonReady = completedSteps >= revealAfterStep.comparison;
+  const extracted = status === 'extracted';
+  const failed = status === 'extraction_failed';
+  const showFeatures = live ? extracted : completedSteps >= revealAfterStep.features;
+  const showQueries = !live && completedSteps >= revealAfterStep.queries;
+  const showDocuments = !live && completedSteps >= revealAfterStep.documents;
+  const comparisonReady = !live && completedSteps >= revealAfterStep.comparison;
   const currentStep = traceSteps[completedSteps];
 
   return (
@@ -55,10 +61,22 @@ export function InvestigationWorkspace({
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_350px]">
         <div className="min-w-0">
           <header>
-            <h1 className="text-2xl font-semibold tracking-[-0.01em] text-ink">Investigating your invention</h1>
+            <h1 className="text-2xl font-semibold tracking-[-0.01em] text-ink">
+              {live && failed ?
+              'Feature extraction' :
+              live && extracted ?
+              'Technical features' :
+              live ?
+              'Extracting technical features' :
+              'Investigating your invention'}
+            </h1>
             <p className="mt-1.5 text-sm text-ink-2" aria-live="polite">
               {complete ?
               `Investigation complete. ${documents.length} candidate documents are ready for review.` :
+              extracted ?
+              'Feature extraction complete. Patent search and evidence comparison were not performed.' :
+              failed ?
+              'Feature extraction could not be completed.' :
               `Working on: ${currentStep?.label.toLowerCase() ?? 'finishing up'}…`}
             </p>
           </header>
@@ -72,13 +90,26 @@ export function InvestigationWorkspace({
             onClear={() => setActiveFeatureId(null)} />
           
 
-          {isCustomInput &&
+          {live &&
           <div className="mt-3 flex gap-2.5 rounded-lg border border-partial-line bg-partial-soft px-4 py-3">
               <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-partial" aria-hidden="true" />
               <p className="text-[13px] leading-relaxed text-ink-2">
-                Demo mode runs one fixed demonstration dataset. The features and evidence below are for the smart bicycle
-                helmet example, not your description.
+                Live workflow: technical feature extraction only. Patent search, document retrieval, and evidence
+                comparison were not performed. This is not a novelty or patentability assessment.
               </p>
+            </div>
+          }
+
+          {failed && extractionError &&
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-partial-line bg-partial-soft px-4 py-3">
+              <p className="text-[13px] leading-relaxed text-ink-2">{extractionError}</p>
+              <button
+              type="button"
+              onClick={onRetry}
+              className="font-medium text-accent transition-colors duration-150 hover:text-accent-hover focus:outline-none focus-visible:underline">
+              
+                Retry extraction
+              </button>
             </div>
           }
 
@@ -105,10 +136,12 @@ export function InvestigationWorkspace({
             <SectionHeader
               id="strategy-heading"
               title="Search strategy"
-              description="Generated search concepts and the features each one targets."
+              description={live ? 'Patent search was not performed.' : 'Generated search concepts and the features each one targets.'}
               meta={showQueries ? `${searchQueries.length} queries` : undefined} />
             
-            {showQueries ?
+            {live ?
+            <NotPerformed label="Patent search is not part of live feature extraction." /> :
+            showQueries ?
             <SearchStrategy queries={searchQueries} showResults={completedSteps >= revealAfterStep.documents} /> :
 
             <PendingRows rows={3} label="Search concepts will appear after features are extracted." />
@@ -119,10 +152,12 @@ export function InvestigationWorkspace({
             <SectionHeader
               id="documents-heading"
               title="Candidate documents"
-              description="Synthetic demonstration records, ranked by feature overlap."
+              description={live ? 'Document retrieval was not performed.' : 'Synthetic demonstration records, ranked by feature overlap.'}
               meta={showDocuments ? `${documents.length} retrieved` : undefined} />
             
-            {showDocuments ?
+            {live ?
+            <NotPerformed label="No patent documents were retrieved for this description." /> :
+            showDocuments ?
             <div className="space-y-3">
                 {documents.map((doc, i) =>
               <motion.div
@@ -161,14 +196,18 @@ export function InvestigationWorkspace({
               disabled={!complete}
               className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-accent-hover active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-ink-4">
               
-              View evidence report
+              {live ? 'Evidence report unavailable' : 'View evidence report'}
               <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>
         </div>
 
         <aside className="lg:sticky lg:top-8 lg:self-start">
-          <InvestigationTrace result={result} status={status} completedSteps={completedSteps} onViewReport={onViewReport} />
+          <InvestigationTrace
+            result={result}
+            status={status}
+            completedSteps={completedSteps}
+            onViewReport={onViewReport} />
         </aside>
       </div>
     </div>);

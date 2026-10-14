@@ -63,7 +63,7 @@ ref)
       </p>
       {activeMissing &&
       <p className="mt-2 text-xs text-partial">
-          This phrase does not appear in your description. Demo features come from the smart bicycle helmet example.
+          This phrase does not appear in the submitted description and is not shown as a source quotation.
         </p>
       }
     </section>);

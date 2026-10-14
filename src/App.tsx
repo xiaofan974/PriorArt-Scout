@@ -69,10 +69,13 @@ export function App() {
             {inv.view === 'new' &&
             <NewInvestigation
               description={inv.description}
+              exampleDescription={inv.exampleDescription}
+              liveExtractionEnabled={inv.liveExtractionEnabled}
               hasOpenInvestigation={inv.status !== 'idle'}
               onDescriptionChange={inv.setDescription}
               onTryExample={inv.applyExample}
-              onStart={inv.start}
+              onStartDemo={inv.startDemo}
+              onStartLive={inv.startLive}
               onResume={() => inv.navigate('workspace')} />
 
             }
@@ -80,11 +83,12 @@ export function App() {
             <InvestigationWorkspace
               result={inv.result}
               submittedDescription={inv.submittedDescription}
-              isCustomInput={inv.isCustomInput}
               status={inv.status}
               completedSteps={inv.completedSteps}
+              extractionError={inv.extractionError}
               onViewReport={() => inv.navigate('report')}
-              onStartNew={inv.startNew} />
+              onStartNew={inv.startNew}
+              onRetry={inv.retryExtraction} />
 
             }
             {inv.view === 'report' && inv.result &&

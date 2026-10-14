@@ -15,4 +15,10 @@ module.exports = {
       { allowConstantExport: true },
     ],
   },
+  overrides: [
+    {
+      files: ['api/**/*.ts', 'src/server/**/*.ts'],
+      env: { node: true },
+    },
+  ],
 }

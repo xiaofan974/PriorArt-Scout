@@ -1,5 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { requestFeatureExtraction, ExtractionApiError } from '../api/extractFeaturesClient';
+import { isLiveExtractionAdvertised } from '../config/liveExtraction';
 import { createDemoInvestigationResult } from '../data/demoResult';
+import { createLiveExtractionPendingResult, createLiveExtractionResult } from '../data/liveResult';
+import { deriveTitle } from '../utils/deriveTitle';
+import { investigationAvailability } from './investigationAvailability';
 import { createIdleInvestigationState } from './investigationState';
 import type {
   InvestigationResult,
@@ -16,12 +21,16 @@ export interface InvestigationState {
   completedSteps: number;
   totalSteps: number;
   title: string;
-  isCustomInput: boolean;
   result: InvestigationResult | null;
+  extractionError: string | null;
+  liveExtractionEnabled: boolean;
+  exampleDescription: string;
   availability: Record<InvestigationView, boolean>;
   setDescription: (value: string) => void;
   applyExample: () => void;
-  start: () => void;
+  startDemo: () => void;
+  startLive: () => void;
+  retryExtraction: () => void;
   navigate: (view: InvestigationView) => void;
   /** The workflow screen the user came from before opening the Research Guide. */
   returnView: WorkflowView;
@@ -29,12 +38,9 @@ export interface InvestigationState {
   startNew: () => void;
 }
 
-/**
- * Owns the investigation lifecycle and the active InvestigationResult.
- * Milestone 2 can replace the demo adapter call in `start` with a backend request
- * that returns the same InvestigationResult shape; the UI replay stays the same.
- */
 export function useInvestigation(): InvestigationState {
+  const exampleDescription = createDemoInvestigationResult().invention.description;
+  const liveExtractionEnabled = isLiveExtractionAdvertised();
   const [view, setView] = useState<InvestigationView>('new');
   const [description, setDescription] = useState('');
   const [submittedDescription, setSubmittedDescription] = useState('');
@@ -42,6 +48,8 @@ export function useInvestigation(): InvestigationState {
   const [completedSteps, setCompletedSteps] = useState(0);
   const [returnView, setReturnView] = useState<WorkflowView>('new');
   const [result, setResult] = useState<InvestigationResult | null>(null);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
+  const extractAbort = useRef<AbortController | null>(null);
 
   const traceSteps = result?.traceSteps ?? [];
 
@@ -58,31 +66,65 @@ export function useInvestigation(): InvestigationState {
     return () => window.clearTimeout(timer);
   }, [status, completedSteps, result]);
 
-  const availability = useMemo<Record<InvestigationView, boolean>>(
-    () => ({ new: true, workspace: status !== 'idle', report: status === 'complete', guide: true }),
-    [status]
-  );
+  const availability = useMemo(() => investigationAvailability(status), [status]);
 
   const applyExample = useCallback(() => {
-    setDescription(createDemoInvestigationResult().invention.description);
-  }, []);
+    setDescription(exampleDescription);
+  }, [exampleDescription]);
 
-  const start = useCallback(() => {
-    const trimmed = description.trim();
-    if (!trimmed) return;
-    // Milestone 1 always loads the demonstration payload. Custom text is stored
-    // but not analysed; the workspace banner discloses this.
-    setSubmittedDescription(trimmed);
+  const startDemo = useCallback(() => {
+    extractAbort.current?.abort();
+    setExtractionError(null);
+    setSubmittedDescription(exampleDescription);
+    setDescription(exampleDescription);
     setResult(createDemoInvestigationResult());
     setCompletedSteps(0);
     setStatus('running');
     setView('workspace');
-  }, [description]);
+  }, [exampleDescription]);
+
+  const runLiveExtraction = useCallback(async (text: string) => {
+    extractAbort.current?.abort();
+    const controller = new AbortController();
+    extractAbort.current = controller;
+    setExtractionError(null);
+    setSubmittedDescription(text);
+    setResult(createLiveExtractionPendingResult(text));
+    setCompletedSteps(1);
+    setStatus('extracting');
+    setView('workspace');
+    try {
+      const features = await requestFeatureExtraction(text, controller.signal);
+      if (controller.signal.aborted) return;
+      const live = createLiveExtractionResult(text, features);
+      setResult(live);
+      setCompletedSteps(live.traceSteps.length);
+      setStatus('extracted');
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      const message =
+      error instanceof ExtractionApiError ?
+      error.message :
+      'Feature extraction could not be completed. Please try again.';
+      setExtractionError(message);
+      setStatus('extraction_failed');
+    }
+  }, []);
+
+  const startLive = useCallback(() => {
+    const trimmed = description.trim();
+    if (!trimmed) return;
+    void runLiveExtraction(trimmed);
+  }, [description, runLiveExtraction]);
+
+  const retryExtraction = useCallback(() => {
+    if (!submittedDescription) return;
+    void runLiveExtraction(submittedDescription);
+  }, [runLiveExtraction, submittedDescription]);
 
   const navigate = useCallback(
     (next: InvestigationView) => {
       if (!availability[next]) return;
-      // Remember where the user came from so the guide can send them back without touching investigation state.
       if (next === 'guide' && view !== 'guide') setReturnView(view);
       setView(next);
     },
@@ -94,6 +136,7 @@ export function useInvestigation(): InvestigationState {
   }, [availability, returnView]);
 
   const startNew = useCallback(() => {
+    extractAbort.current?.abort();
     const next = createIdleInvestigationState();
     setDescription(next.description);
     setSubmittedDescription(next.submittedDescription);
@@ -101,17 +144,16 @@ export function useInvestigation(): InvestigationState {
     setStatus(next.status);
     setReturnView(next.returnView);
     setResult(next.result);
+    setExtractionError(null);
     setView(next.view);
   }, []);
 
-  const isCustomInput =
-  submittedDescription !== '' && result !== null && submittedDescription !== result.invention.description;
   const title =
   status === 'idle' ?
   'New investigation' :
-  isCustomInput ?
-  deriveTitle(submittedDescription) :
-  result?.invention.title ?? deriveTitle(submittedDescription);
+  result?.mode === 'demonstration' ?
+  result.invention.title :
+  deriveTitle(submittedDescription || description);
 
   return {
     view,
@@ -121,21 +163,19 @@ export function useInvestigation(): InvestigationState {
     completedSteps,
     totalSteps: traceSteps.length,
     title,
-    isCustomInput,
     result,
+    extractionError,
+    liveExtractionEnabled,
+    exampleDescription,
     availability,
     setDescription,
     applyExample,
-    start,
+    startDemo,
+    startLive,
+    retryExtraction,
     navigate,
     returnView,
     returnFromGuide,
     startNew
   };
-}
-
-function deriveTitle(text: string): string {
-  const words = text.replace(/\s+/g, ' ').split(' ');
-  const head = words.slice(0, 7).join(' ').replace(/[.,;:]$/, '');
-  return words.length > 7 ? `${head}…` : head;
 }

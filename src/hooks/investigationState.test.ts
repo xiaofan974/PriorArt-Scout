@@ -20,5 +20,7 @@ describe('createIdleInvestigationState', () => {
     expect(idle.result).not.toEqual(demo);
     expect(idle.status).not.toBe('running');
     expect(idle.status).not.toBe('complete');
+    expect(idle.status).not.toBe('extracting');
+    expect(idle.status).not.toBe('extracted');
   });
 });

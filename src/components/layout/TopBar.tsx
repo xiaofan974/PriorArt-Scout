@@ -34,7 +34,8 @@ export function TopBar({
   onReturn
 }: TopBarProps) {
   const currentIndex = steps.findIndex((s) => s.view === view);
-  const doneThrough = status === 'complete' ? 1 : status === 'running' ? 0 : -1;
+  const doneThrough =
+  status === 'complete' ? 1 : status === 'running' || status === 'extracting' || status === 'extracted' || status === 'extraction_failed' ? 0 : -1;
 
   return (
     <header className="relative flex h-14 shrink-0 items-center gap-3 border-b border-line bg-canvas px-4 sm:px-6">
@@ -110,11 +111,11 @@ export function TopBar({
         </ol>
       </nav>
 
-      {status === 'running' &&
+      {(status === 'running' || status === 'extracting') &&
       <div className="absolute inset-x-0 bottom-0 h-0.5 bg-line" aria-hidden="true">
           <div
           className="h-full bg-accent transition-[width] duration-300 ease-out"
-          style={{ width: `${completedSteps / totalSteps * 100}%` }} />
+          style={{ width: `${totalSteps === 0 ? 0 : completedSteps / totalSteps * 100}%` }} />
         
         </div>
       }

@@ -37,8 +37,14 @@ export function FeatureList({ features, description, activeFeatureId, onSelectFe
                 <span className="mt-0.5 block text-[13px] text-ink-3">{f.detail}</span>
               </span>
               <span className="block text-xs leading-snug text-ink-3 sm:pt-0.5">
-                <span className="text-ink-4">{inDescription ? 'From description: ' : 'From example description: '}</span>
-                <span className={active ? 'text-accent-ink' : 'text-ink-2'}>“{f.sourcePhrase}”</span>
+                {inDescription ?
+                <>
+                    <span className="text-ink-4">From description: </span>
+                    <span className={active ? 'text-accent-ink' : 'text-ink-2'}>“{f.sourcePhrase}”</span>
+                  </> :
+
+                <span className="text-ink-4">Source phrase could not be verified.</span>
+                }
               </span>
             </button>
           </motion.li>);

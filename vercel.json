@@ -1,0 +1,8 @@
+{
+  "framework": "vite",
+  "functions": {
+    "api/extract-features.ts": {
+      "maxDuration": 30
+    }
+  }
+}

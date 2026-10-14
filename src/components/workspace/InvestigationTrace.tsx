@@ -15,30 +15,34 @@ interface InvestigationTraceProps {
 export function InvestigationTrace({ result, status, completedSteps, onViewReport }: InvestigationTraceProps) {
   const [collapsed, setCollapsed] = useState(false);
   const complete = status === 'complete';
+  const liveDone = status === 'extracted';
+  const inProgress = status === 'running' || status === 'extracting';
+  const live = result.mode === 'live';
 
   // Always expanded while the investigation runs.
   useEffect(() => {
-    if (status === 'running') setCollapsed(false);
-  }, [status]);
+    if (inProgress) setCollapsed(false);
+  }, [inProgress]);
 
   const { features, searchQueries, documents, traceSteps, revealAfterStep } = result;
   const elapsedMs = traceSteps.slice(0, completedSteps).reduce((sum, s) => sum + s.simulatedMs, 0);
   const evidence = validateEvidence(result);
   const phrases = validateSourcePhrases(result.invention.description, features);
-  const isCollapsed = complete && collapsed;
+  const isCollapsed = (complete || liveDone) && collapsed;
+  const finished = complete || liveDone;
 
   const summary: {label: string;value: string;}[] = [
   { label: 'Elapsed', value: `${(elapsedMs / 1000).toFixed(1)}s` },
   { label: 'Tool calls', value: `${completedSteps} of ${traceSteps.length}` },
   { label: 'Features', value: completedSteps >= revealAfterStep.features ? String(features.length) : '—' },
-  { label: 'Queries', value: completedSteps >= revealAfterStep.queries ? String(searchQueries.length) : '—' },
-  { label: 'Documents', value: completedSteps >= revealAfterStep.documents ? String(documents.length) : '—' },
+  { label: 'Queries', value: live ? 'Not performed' : completedSteps >= revealAfterStep.queries ? String(searchQueries.length) : '—' },
+  { label: 'Documents', value: live ? 'Not performed' : completedSteps >= revealAfterStep.documents ? String(documents.length) : '—' },
   {
     label: 'Comparisons',
-    value: completedSteps >= revealAfterStep.comparison ? String(features.length * documents.length) : '—'
+    value: live ? 'Not performed' : completedSteps >= revealAfterStep.comparison ? String(features.length * documents.length) : '—'
   },
-  { label: 'Source phrases', value: complete ? `${phrases.verified} of ${phrases.total}` : '—' },
-  { label: 'Excerpts verified', value: complete ? `${evidence.verified} of ${evidence.cited}` : '—' }];
+  { label: 'Source phrases', value: finished ? `${phrases.verified} of ${phrases.total}` : '—' },
+  { label: 'Excerpts verified', value: live ? 'Not performed' : complete ? `${evidence.verified} of ${evidence.cited}` : '—' }];
 
 
   const headingContent =
@@ -54,7 +58,7 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
 
   return (
     <section aria-labelledby="trace-heading" className="rounded-xl border border-line bg-white">
-      {complete ?
+      {complete || liveDone ?
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
@@ -96,7 +100,7 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
             <ol className="px-4 py-4" aria-live="polite">
               {traceSteps.map((step, i) => {
               const state =
-              i < completedSteps ? 'done' : i === completedSteps && status === 'running' ? 'active' : 'pending';
+              i < completedSteps ? 'done' : i === completedSteps && inProgress ? 'active' : 'pending';
               const isLast = i === traceSteps.length - 1;
               return (
                 <li key={step.id} className={`relative flex gap-3 ${isLast ? '' : 'pb-4'}`}>
@@ -116,7 +120,7 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
                         <p className={`text-[13px] font-medium ${state === 'pending' ? 'text-ink-3' : 'text-ink'}`}>
                           {step.label}
                         </p>
-                        {state === 'done' &&
+                        {state === 'done' && step.simulatedMs > 0 &&
                       <span className="shrink-0 font-mono text-[11px] text-ink-3">
                             {(step.simulatedMs / 1000).toFixed(1)}s
                           </span>
@@ -156,12 +160,13 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
           disabled={!complete}
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-accent-hover active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-ink-4">
           
-          {complete ? 'View evidence report' : 'Investigation in progress…'}
+          {complete ? 'View evidence report' : live ? 'Evidence report unavailable' : 'Investigation in progress…'}
           {complete && <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />}
         </button>
         <p className="mt-3 text-[11px] leading-snug text-ink-3">
-          Shows observable tool actions and their results. Timings are simulated; no live AI or patent database calls
-          are made.
+          {live ?
+          'Records feature extraction only. Patent search and comparison were not run.' :
+          'Shows observable tool actions and their results. Timings are simulated; no live AI or patent database calls are made.'}
         </p>
       </div>
     </section>);
