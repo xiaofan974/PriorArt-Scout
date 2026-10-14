@@ -1,17 +1,18 @@
 import { StatusGlyph } from '../StatusGlyph';
-import { documents, features } from '../../data/demoInvestigation';
 import { featureCoverage, resolveEvidence } from '../../utils/evidence';
 import { statusStyles } from '../../utils/matchStatus';
-import type { MatchStatus, MatrixSelection } from '../../types/investigation';
+import type { InvestigationResult, MatchStatus, MatrixSelection } from '../../types/investigation';
 
 interface EvidenceMatrixProps {
+  result: InvestigationResult;
   selection: MatrixSelection | null;
   onSelect: (selection: MatrixSelection) => void;
 }
 
 const legendOrder: MatchStatus[] = ['supported', 'partial', 'not_established'];
 
-export function EvidenceMatrix({ selection, onSelect }: EvidenceMatrixProps) {
+export function EvidenceMatrix({ result, selection, onSelect }: EvidenceMatrixProps) {
+  const { features, documents } = result;
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2" aria-label="Legend">
@@ -53,7 +54,7 @@ export function EvidenceMatrix({ selection, onSelect }: EvidenceMatrixProps) {
           </thead>
           <tbody>
             {features.map((f, rowIndex) => {
-              const coverage = featureCoverage(f.id);
+              const coverage = featureCoverage(result, f.id);
               const needsInvestigation = coverage.supported === 0;
               const rowSelected = selection?.featureId === f.id;
               const rowBorder = rowIndex < features.length - 1 ? 'border-b border-line' : '';
@@ -69,7 +70,7 @@ export function EvidenceMatrix({ selection, onSelect }: EvidenceMatrixProps) {
                     </div>
                   </th>
                   {documents.map((d) => {
-                    const resolved = resolveEvidence(f.id, d.id);
+                    const resolved = resolveEvidence(result, f.id, d.id);
                     const status: MatchStatus = resolved?.status ?? 'not_established';
                     const style = statusStyles[status];
                     const selected = rowSelected && selection?.documentId === d.id;

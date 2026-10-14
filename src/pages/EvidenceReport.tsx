@@ -7,15 +7,16 @@ import { EvidenceInspector } from '../components/report/EvidenceInspector';
 import { RankedDocuments } from '../components/report/RankedDocuments';
 import { ResearchGaps } from '../components/report/ResearchGaps';
 import { downloadReport, LIMITATIONS_NOTICE } from '../utils/reportExport';
-import type { MatrixSelection } from '../types/investigation';
+import type { InvestigationResult, MatrixSelection } from '../types/investigation';
 
 interface EvidenceReportProps {
+  result: InvestigationResult;
   submittedDescription: string;
   onBack: () => void;
   onStartNew: () => void;
 }
 
-export function EvidenceReport({ submittedDescription, onBack, onStartNew }: EvidenceReportProps) {
+export function EvidenceReport({ result, submittedDescription, onBack, onStartNew }: EvidenceReportProps) {
   const [selection, setSelection] = useState<MatrixSelection | null>(null);
   const closeInspector = useCallback(() => setSelection(null), []);
   const [exportState, setExportState] = useState<'idle' | 'done' | 'error'>('idle');
@@ -28,7 +29,7 @@ export function EvidenceReport({ submittedDescription, onBack, onStartNew }: Evi
 
   const handleExport = () => {
     try {
-      downloadReport(submittedDescription);
+      downloadReport(result, submittedDescription);
       setExportState('done');
     } catch {
       setExportState('error');
@@ -39,7 +40,9 @@ export function EvidenceReport({ submittedDescription, onBack, onStartNew }: Evi
     <div className="mx-auto w-full max-w-[1240px] px-4 py-8 sm:px-6 lg:px-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 max-w-2xl">
-          <p className="font-mono text-[11px] text-ink-3">Report · Demonstration corpus</p>
+          <p className="font-mono text-[11px] text-ink-3">
+            {result.mode === 'demonstration' ? 'Report · Demonstration corpus' : 'Report · Investigation corpus'}
+          </p>
           <h1 className="mt-1.5 text-[26px] font-semibold leading-tight tracking-[-0.01em] text-ink">
             Preliminary Prior Art Investigation
           </h1>
@@ -84,7 +87,7 @@ export function EvidenceReport({ submittedDescription, onBack, onStartNew }: Evi
       </header>
 
       <div className="mt-6">
-        <ReportSummary />
+        <ReportSummary result={result} />
       </div>
 
       <aside
@@ -105,7 +108,7 @@ export function EvidenceReport({ submittedDescription, onBack, onStartNew }: Evi
           title="Feature-to-evidence matrix"
           description="How each invention feature compares with each demonstration document. Every supported or partial status cites a source passage." />
         
-        <EvidenceMatrix selection={selection} onSelect={setSelection} />
+        <EvidenceMatrix result={result} selection={selection} onSelect={setSelection} />
       </section>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
@@ -115,7 +118,7 @@ export function EvidenceReport({ submittedDescription, onBack, onStartNew }: Evi
             title="Candidate documents"
             description="Ranked by feature overlap. Expand a document to see its cited passages." />
           
-          <RankedDocuments onInspect={setSelection} />
+          <RankedDocuments result={result} onInspect={setSelection} />
         </section>
         <section aria-labelledby="gaps-heading">
           <SectionHeader
@@ -123,11 +126,11 @@ export function EvidenceReport({ submittedDescription, onBack, onStartNew }: Evi
             title="Research gaps"
             description="What this investigation could not establish, and where to look next." />
           
-          <ResearchGaps onInspect={setSelection} />
+          <ResearchGaps result={result} onInspect={setSelection} />
         </section>
       </div>
 
-      <EvidenceInspector selection={selection} onSelect={setSelection} onClose={closeInspector} />
+      <EvidenceInspector result={result} selection={selection} onSelect={setSelection} onClose={closeInspector} />
     </div>);
 
 }

@@ -1,15 +1,16 @@
 import { motion } from 'framer-motion';
 import { SearchIcon } from 'lucide-react';
-import { searchQueries } from '../../data/demoInvestigation';
+import type { SearchQuery } from '../../types/investigation';
 
 interface SearchStrategyProps {
+  queries: SearchQuery[];
   showResults: boolean;
 }
 
-export function SearchStrategy({ showResults }: SearchStrategyProps) {
+export function SearchStrategy({ queries, showResults }: SearchStrategyProps) {
   return (
     <ul className="grid gap-3 md:grid-cols-3">
-      {searchQueries.map((q, i) =>
+      {queries.map((q, i) =>
       <motion.li
         key={q.id}
         initial={{ opacity: 0, y: 4 }}

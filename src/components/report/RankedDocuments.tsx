@@ -3,23 +3,24 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDownIcon } from 'lucide-react';
 import { StatusGlyph } from '../StatusGlyph';
 import { RelevanceMeter } from '../RelevanceMeter';
-import { documents, features } from '../../data/demoInvestigation';
 import { citationsForDocument, documentCoverage, resolveEvidence } from '../../utils/evidence';
 import { statusStyles } from '../../utils/matchStatus';
-import type { MatrixSelection } from '../../types/investigation';
+import type { InvestigationResult, MatrixSelection } from '../../types/investigation';
 
 interface RankedDocumentsProps {
+  result: InvestigationResult;
   onInspect: (selection: MatrixSelection) => void;
 }
 
-export function RankedDocuments({ onInspect }: RankedDocumentsProps) {
+export function RankedDocuments({ result, onInspect }: RankedDocumentsProps) {
+  const { documents, features } = result;
   const [expanded, setExpanded] = useState<string | null>(documents[0]?.id ?? null);
 
   return (
     <ol className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
       {documents.map((doc) => {
         const open = expanded === doc.id;
-        const coverage = documentCoverage(doc.id);
+        const coverage = documentCoverage(result, doc.id);
         const panelId = `ranked-${doc.id}`;
         return (
           <li key={doc.id}>
@@ -39,7 +40,7 @@ export function RankedDocuments({ onInspect }: RankedDocumentsProps) {
                 <span className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5">
                   <span className="flex items-center gap-1" aria-label={`${coverage.supported} supported, ${coverage.partial} partially supported`}>
                     {features.map((f) => {
-                      const s = resolveEvidence(f.id, doc.id)?.status ?? 'not_established';
+                      const s = resolveEvidence(result, f.id, doc.id)?.status ?? 'not_established';
                       return (
                         <span key={f.id} className={statusStyles[s].text} title={`${f.id}: ${statusStyles[s].label}`}>
                           <StatusGlyph status={s} className="h-3 w-3" />
@@ -68,7 +69,7 @@ export function RankedDocuments({ onInspect }: RankedDocumentsProps) {
                   <div className="px-4 pb-4 pl-12">
                     <p className="text-[13px] leading-relaxed text-ink-2">{doc.summary}</p>
                     <ul className="mt-3 space-y-1">
-                      {citationsForDocument(doc.id).map(({ match, status, passage }) =>
+                      {citationsForDocument(result, doc.id).map(({ match, status, passage }) =>
                     <li key={match.featureId}>
                           <button
                         type="button"

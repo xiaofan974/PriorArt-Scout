@@ -1,16 +1,21 @@
-import { documents, features } from '../data/demoInvestigation';
-import { researchGaps } from '../data/researchGaps';
 import { featuresNeedingInvestigation, resolveEvidence } from './evidence';
 import { statusStyles } from './matchStatus';
+import type { InvestigationResult } from '../types/investigation';
 
 export const LIMITATIONS_NOTICE =
 'This report is generated from a limited demonstration corpus. It is preliminary research, not an exhaustive prior-art search or a legal opinion. No conclusion about novelty, patentability, infringement, or freedom to operate is provided.';
 
-export function buildReportMarkdown(description: string): string {
+export function buildReportMarkdown(result: InvestigationResult, description: string): string {
+  const { features, documents, researchGaps } = result;
+  const modeLine =
+  result.mode === 'demonstration' ?
+  '_PriorArt Scout · Demo mode · Synthetic demonstration data_' :
+  '_PriorArt Scout · Preliminary investigation_';
+
   const lines: string[] = [];
   lines.push('# Preliminary Prior Art Investigation');
   lines.push('');
-  lines.push('_PriorArt Scout · Demo mode · Synthetic demonstration data_');
+  lines.push(modeLine);
   lines.push('');
   lines.push(`> ${LIMITATIONS_NOTICE}`);
   lines.push('');
@@ -30,7 +35,7 @@ export function buildReportMarkdown(description: string): string {
   lines.push(`| --- | ${documents.map(() => '---').join(' | ')} |`);
   for (const f of features) {
     const cells = documents.map((d) => {
-      const r = resolveEvidence(f.id, d.id);
+      const r = resolveEvidence(result, f.id, d.id);
       return r ? statusStyles[r.status].label : '—';
     });
     lines.push(`| ${f.id} ${f.label} | ${cells.join(' | ')} |`);
@@ -41,7 +46,7 @@ export function buildReportMarkdown(description: string): string {
     lines.push('');
     lines.push(`### ${f.id} — ${f.label}`);
     for (const d of documents) {
-      const r = resolveEvidence(f.id, d.id);
+      const r = resolveEvidence(result, f.id, d.id);
       if (!r) continue;
       lines.push('');
       lines.push(`**${d.id}: ${statusStyles[r.status].label}**`);
@@ -53,7 +58,7 @@ export function buildReportMarkdown(description: string): string {
   lines.push('## Research gaps');
   lines.push('');
   lines.push('### Features requiring further investigation');
-  for (const f of featuresNeedingInvestigation()) {
+  for (const f of featuresNeedingInvestigation(result)) {
     const note = researchGaps.featureNotes.find((n) => n.featureId === f.id)?.note;
     lines.push(`- **${f.id} ${f.label}**${note ? `: ${note}` : ''}`);
   }
@@ -70,12 +75,13 @@ export function buildReportMarkdown(description: string): string {
   return lines.join('\n');
 }
 
-export function downloadReport(description: string): void {
-  const blob = new Blob([buildReportMarkdown(description)], { type: 'text/markdown;charset=utf-8' });
+export function downloadReport(result: InvestigationResult, description: string): void {
+  const blob = new Blob([buildReportMarkdown(result, description)], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = 'priorart-scout-demo-report.md';
+  anchor.download =
+  result.mode === 'demonstration' ? 'priorart-scout-demo-report.md' : 'priorart-scout-report.md';
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();

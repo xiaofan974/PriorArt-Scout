@@ -2,18 +2,18 @@ import React, { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangleIcon, ChevronLeftIcon, ChevronRightIcon, ShieldCheckIcon, XIcon } from 'lucide-react';
 import { StatusGlyph } from '../StatusGlyph';
-import { documents, features } from '../../data/demoInvestigation';
 import { getDocument, getFeature, resolveEvidence } from '../../utils/evidence';
 import { statusStyles } from '../../utils/matchStatus';
-import type { MatrixSelection } from '../../types/investigation';
+import type { InvestigationResult, MatrixSelection } from '../../types/investigation';
 
 interface EvidenceInspectorProps {
+  result: InvestigationResult;
   selection: MatrixSelection | null;
   onSelect: (selection: MatrixSelection) => void;
   onClose: () => void;
 }
 
-export function EvidenceInspector({ selection, onSelect, onClose }: EvidenceInspectorProps) {
+export function EvidenceInspector({ result, selection, onSelect, onClose }: EvidenceInspectorProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const open = selection !== null;
 
@@ -49,7 +49,7 @@ export function EvidenceInspector({ selection, onSelect, onClose }: EvidenceInsp
           exit={{ x: 32, opacity: 0 }}
           transition={{ duration: 0.24, ease: [0.23, 1, 0.32, 1] }}>
           
-            <InspectorBody selection={selection} onSelect={onSelect} onClose={onClose} closeRef={closeRef} />
+            <InspectorBody result={result} selection={selection} onSelect={onSelect} onClose={onClose} closeRef={closeRef} />
           </motion.aside>
         </div>
       }
@@ -58,16 +58,18 @@ export function EvidenceInspector({ selection, onSelect, onClose }: EvidenceInsp
 }
 
 interface InspectorBodyProps {
+  result: InvestigationResult;
   selection: MatrixSelection;
   onSelect: (selection: MatrixSelection) => void;
   onClose: () => void;
   closeRef: React.RefObject<HTMLButtonElement>;
 }
 
-function InspectorBody({ selection, onSelect, onClose, closeRef }: InspectorBodyProps) {
-  const feature = getFeature(selection.featureId);
-  const document = getDocument(selection.documentId);
-  const resolved = resolveEvidence(selection.featureId, selection.documentId);
+function InspectorBody({ result, selection, onSelect, onClose, closeRef }: InspectorBodyProps) {
+  const { features, documents } = result;
+  const feature = getFeature(result, selection.featureId);
+  const document = getDocument(result, selection.documentId);
+  const resolved = resolveEvidence(result, selection.featureId, selection.documentId);
   const featureIndex = features.findIndex((f) => f.id === selection.featureId);
   const prevFeature = features[featureIndex - 1];
   const nextFeature = features[featureIndex + 1];
@@ -106,7 +108,7 @@ function InspectorBody({ selection, onSelect, onClose, closeRef }: InspectorBody
           <p className="text-xs font-medium text-ink-3">Compared against</p>
           <div className="mt-2 grid grid-cols-3 gap-1 rounded-lg bg-subtle p-1" role="tablist" aria-label="Documents">
             {documents.map((d) => {
-              const s = resolveEvidence(feature.id, d.id)?.status ?? 'not_established';
+              const s = resolveEvidence(result, feature.id, d.id)?.status ?? 'not_established';
               const active = d.id === document.id;
               return (
                 <button

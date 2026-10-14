@@ -76,8 +76,9 @@ export function App() {
               onResume={() => inv.navigate('workspace')} />
 
             }
-            {inv.view === 'workspace' &&
+            {inv.view === 'workspace' && inv.result &&
             <InvestigationWorkspace
+              result={inv.result}
               submittedDescription={inv.submittedDescription}
               isCustomInput={inv.isCustomInput}
               status={inv.status}
@@ -86,8 +87,9 @@ export function App() {
               onStartNew={inv.startNew} />
 
             }
-            {inv.view === 'report' &&
+            {inv.view === 'report' && inv.result &&
             <EvidenceReport
+              result={inv.result}
               submittedDescription={inv.submittedDescription}
               onBack={() => inv.navigate('workspace')}
               onStartNew={inv.startNew} />

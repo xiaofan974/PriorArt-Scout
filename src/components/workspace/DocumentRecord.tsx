@@ -4,17 +4,18 @@ import { RelevanceMeter } from '../RelevanceMeter';
 import { StatusGlyph } from '../StatusGlyph';
 import { citationsForDocument } from '../../utils/evidence';
 import { statusStyles } from '../../utils/matchStatus';
-import type { CandidateDocument } from '../../types/investigation';
+import type { CandidateDocument, InvestigationResult } from '../../types/investigation';
 
 interface DocumentRecordProps {
+  result: InvestigationResult;
   document: CandidateDocument;
   comparisonReady: boolean;
   expanded: boolean;
   onToggle: () => void;
 }
 
-export function DocumentRecord({ document, comparisonReady, expanded, onToggle }: DocumentRecordProps) {
-  const citations = citationsForDocument(document.id);
+export function DocumentRecord({ result, document, comparisonReady, expanded, onToggle }: DocumentRecordProps) {
+  const citations = citationsForDocument(result, document.id);
   const panelId = `${document.id}-evidence`;
 
   return (

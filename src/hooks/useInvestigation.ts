@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { exampleInvention, traceSteps } from '../data/demoInvestigation';
-import type { InvestigationStatus, InvestigationView, WorkflowView } from '../types/investigation';
+import { createDemoInvestigationResult } from '../data/demoResult';
+import { createIdleInvestigationState } from './investigationState';
+import type {
+  InvestigationResult,
+  InvestigationStatus,
+  InvestigationView,
+  WorkflowView } from
+'../types/investigation';
 
 export interface InvestigationState {
   view: InvestigationView;
@@ -11,6 +17,7 @@ export interface InvestigationState {
   totalSteps: number;
   title: string;
   isCustomInput: boolean;
+  result: InvestigationResult | null;
   availability: Record<InvestigationView, boolean>;
   setDescription: (value: string) => void;
   applyExample: () => void;
@@ -23,8 +30,9 @@ export interface InvestigationState {
 }
 
 /**
- * Owns the investigation lifecycle. In production, `start` would call the backend
- * and stream trace steps; here it replays the synthetic trace with simulated timings.
+ * Owns the investigation lifecycle and the active InvestigationResult.
+ * Milestone 2 can replace the demo adapter call in `start` with a backend request
+ * that returns the same InvestigationResult shape; the UI replay stays the same.
  */
 export function useInvestigation(): InvestigationState {
   const [view, setView] = useState<InvestigationView>('new');
@@ -33,31 +41,39 @@ export function useInvestigation(): InvestigationState {
   const [status, setStatus] = useState<InvestigationStatus>('idle');
   const [completedSteps, setCompletedSteps] = useState(0);
   const [returnView, setReturnView] = useState<WorkflowView>('new');
+  const [result, setResult] = useState<InvestigationResult | null>(null);
+
+  const traceSteps = result?.traceSteps ?? [];
 
   useEffect(() => {
-    if (status !== 'running') return;
-    if (completedSteps >= traceSteps.length) {
+    if (status !== 'running' || !result) return;
+    if (completedSteps >= result.traceSteps.length) {
       setStatus('complete');
       return;
     }
     const timer = window.setTimeout(
       () => setCompletedSteps((n) => n + 1),
-      traceSteps[completedSteps].simulatedMs
+      result.traceSteps[completedSteps].simulatedMs
     );
     return () => window.clearTimeout(timer);
-  }, [status, completedSteps]);
+  }, [status, completedSteps, result]);
 
   const availability = useMemo<Record<InvestigationView, boolean>>(
     () => ({ new: true, workspace: status !== 'idle', report: status === 'complete', guide: true }),
     [status]
   );
 
-  const applyExample = useCallback(() => setDescription(exampleInvention.description), []);
+  const applyExample = useCallback(() => {
+    setDescription(createDemoInvestigationResult().invention.description);
+  }, []);
 
   const start = useCallback(() => {
     const trimmed = description.trim();
     if (!trimmed) return;
+    // Milestone 1 always loads the demonstration payload. Custom text is stored
+    // but not analysed; the workspace banner discloses this.
     setSubmittedDescription(trimmed);
+    setResult(createDemoInvestigationResult());
     setCompletedSteps(0);
     setStatus('running');
     setView('workspace');
@@ -78,21 +94,24 @@ export function useInvestigation(): InvestigationState {
   }, [availability, returnView]);
 
   const startNew = useCallback(() => {
-    setDescription('');
-    setSubmittedDescription('');
-    setCompletedSteps(0);
-    setStatus('idle');
-    setReturnView('new');
-    setView('new');
+    const next = createIdleInvestigationState();
+    setDescription(next.description);
+    setSubmittedDescription(next.submittedDescription);
+    setCompletedSteps(next.completedSteps);
+    setStatus(next.status);
+    setReturnView(next.returnView);
+    setResult(next.result);
+    setView(next.view);
   }, []);
 
-  const isCustomInput = submittedDescription !== '' && submittedDescription !== exampleInvention.description;
+  const isCustomInput =
+  submittedDescription !== '' && result !== null && submittedDescription !== result.invention.description;
   const title =
   status === 'idle' ?
   'New investigation' :
   isCustomInput ?
   deriveTitle(submittedDescription) :
-  exampleInvention.title;
+  result?.invention.title ?? deriveTitle(submittedDescription);
 
   return {
     view,
@@ -103,6 +122,7 @@ export function useInvestigation(): InvestigationState {
     totalSteps: traceSteps.length,
     title,
     isCustomInput,
+    result,
     availability,
     setDescription,
     applyExample,

@@ -1,15 +1,15 @@
 import React from 'react';
-import { researchGaps } from '../../data/researchGaps';
 import { featuresNeedingInvestigation, resolveEvidence } from '../../utils/evidence';
-import type { MatrixSelection } from '../../types/investigation';
-import { documents } from '../../data/demoInvestigation';
+import type { InvestigationResult, MatrixSelection } from '../../types/investigation';
 
 interface ResearchGapsProps {
+  result: InvestigationResult;
   onInspect: (selection: MatrixSelection) => void;
 }
 
-export function ResearchGaps({ onInspect }: ResearchGapsProps) {
-  const incomplete = featuresNeedingInvestigation();
+export function ResearchGaps({ result, onInspect }: ResearchGapsProps) {
+  const { documents, researchGaps } = result;
+  const incomplete = featuresNeedingInvestigation(result);
 
   return (
     <div className="divide-y divide-line rounded-xl border border-line bg-white">
@@ -28,7 +28,7 @@ export function ResearchGaps({ onInspect }: ResearchGapsProps) {
                     type="button"
                     onClick={() => {
                       const firstCited =
-                      documents.find((d) => resolveEvidence(f.id, d.id)?.passage) ?? documents[0];
+                      documents.find((d) => resolveEvidence(result, f.id, d.id)?.passage) ?? documents[0];
                       onInspect({ featureId: f.id, documentId: firstCited.id });
                     }}
                     className="text-xs font-medium text-accent transition-colors duration-150 hover:text-accent-hover focus:outline-none focus-visible:underline">

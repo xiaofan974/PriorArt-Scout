@@ -1,4 +1,3 @@
-import { exampleInvention, features } from '../data/demoInvestigation';
 import type { TechnicalFeature } from '../types/investigation';
 
 export interface DescriptionSegment {
@@ -31,8 +30,11 @@ export function segmentDescription(description: string, items: TechnicalFeature[
   return segments;
 }
 
-/** Counts how many demonstration features quote an exact substring of the example description. */
-export function validateSourcePhrases(): {total: number;verified: number;} {
-  const verified = features.filter((f) => locatePhrase(exampleInvention.description, f.sourcePhrase) !== null).length;
+/** Counts how many features quote an exact substring of the given description. */
+export function validateSourcePhrases(
+  description: string,
+  features: TechnicalFeature[]
+): {total: number;verified: number;} {
+  const verified = features.filter((f) => locatePhrase(description, f.sourcePhrase) !== null).length;
   return { total: features.length, verified };
 }

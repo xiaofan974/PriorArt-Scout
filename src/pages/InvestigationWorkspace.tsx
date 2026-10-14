@@ -8,10 +8,10 @@ import { SearchStrategy } from '../components/workspace/SearchStrategy';
 import { DocumentRecord } from '../components/workspace/DocumentRecord';
 import { InvestigationTrace } from '../components/workspace/InvestigationTrace';
 import { InventionDescription } from '../components/workspace/InventionDescription';
-import { documents, features, revealAfterStep, searchQueries, traceSteps } from '../data/demoInvestigation';
-import type { InvestigationStatus } from '../types/investigation';
+import type { InvestigationResult, InvestigationStatus } from '../types/investigation';
 
 interface InvestigationWorkspaceProps {
+  result: InvestigationResult;
   submittedDescription: string;
   isCustomInput: boolean;
   status: InvestigationStatus;
@@ -21,6 +21,7 @@ interface InvestigationWorkspaceProps {
 }
 
 export function InvestigationWorkspace({
+  result,
   submittedDescription,
   isCustomInput,
   status,
@@ -41,6 +42,7 @@ export function InvestigationWorkspace({
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+  const { features, searchQueries, documents, traceSteps, revealAfterStep } = result;
   const complete = status === 'complete';
   const showFeatures = completedSteps >= revealAfterStep.features;
   const showQueries = completedSteps >= revealAfterStep.queries;
@@ -64,6 +66,7 @@ export function InvestigationWorkspace({
           <InventionDescription
             ref={descriptionRef}
             description={submittedDescription}
+            features={features}
             activeFeatureId={activeFeatureId}
             showPhrases={showFeatures}
             onClear={() => setActiveFeatureId(null)} />
@@ -88,6 +91,7 @@ export function InvestigationWorkspace({
             
             {showFeatures ?
             <FeatureList
+              features={features}
               description={submittedDescription}
               activeFeatureId={activeFeatureId}
               onSelectFeature={selectFeature} /> :
@@ -105,7 +109,7 @@ export function InvestigationWorkspace({
               meta={showQueries ? `${searchQueries.length} queries` : undefined} />
             
             {showQueries ?
-            <SearchStrategy showResults={completedSteps >= revealAfterStep.documents} /> :
+            <SearchStrategy queries={searchQueries} showResults={completedSteps >= revealAfterStep.documents} /> :
 
             <PendingRows rows={3} label="Search concepts will appear after features are extracted." />
             }
@@ -128,6 +132,7 @@ export function InvestigationWorkspace({
                 transition={{ duration: 0.2, delay: i * 0.05, ease: [0.23, 1, 0.32, 1] }}>
                 
                     <DocumentRecord
+                  result={result}
                   document={doc}
                   comparisonReady={comparisonReady}
                   expanded={expandedDoc === doc.id}
@@ -163,7 +168,7 @@ export function InvestigationWorkspace({
         </div>
 
         <aside className="lg:sticky lg:top-8 lg:self-start">
-          <InvestigationTrace status={status} completedSteps={completedSteps} onViewReport={onViewReport} />
+          <InvestigationTrace result={result} status={status} completedSteps={completedSteps} onViewReport={onViewReport} />
         </aside>
       </div>
     </div>);

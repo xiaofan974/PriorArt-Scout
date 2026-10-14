@@ -1,9 +1,10 @@
 import React from 'react';
-import { documents, features } from '../../data/demoInvestigation';
 import { featuresNeedingInvestigation } from '../../utils/evidence';
+import type { InvestigationResult } from '../../types/investigation';
 
-export function ReportSummary() {
-  const needing = featuresNeedingInvestigation().length;
+export function ReportSummary({ result }: {result: InvestigationResult;}) {
+  const { features, documents } = result;
+  const needing = featuresNeedingInvestigation(result).length;
   const items: {value: React.ReactNode;label: string;}[] = [
   { value: features.length, label: 'invention features analysed' },
   { value: documents.length, label: 'candidate documents reviewed' },

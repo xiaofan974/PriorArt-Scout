@@ -1,17 +1,18 @@
 import React, { forwardRef } from 'react';
 import { XIcon } from 'lucide-react';
-import { features } from '../../data/demoInvestigation';
 import { locatePhrase, segmentDescription } from '../../utils/sourcePhrase';
+import type { TechnicalFeature } from '../../types/investigation';
 
 interface InventionDescriptionProps {
   description: string;
+  features: TechnicalFeature[];
   activeFeatureId: string | null;
   showPhrases: boolean;
   onClear: () => void;
 }
 
 export const InventionDescription = forwardRef<HTMLElement, InventionDescriptionProps>(function InventionDescription(
-{ description, activeFeatureId, showPhrases, onClear },
+{ description, features, activeFeatureId, showPhrases, onClear },
 ref)
 {
   const segments = segmentDescription(description, showPhrases ? features : []);

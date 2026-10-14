@@ -96,3 +96,30 @@ export interface MatrixSelection {
   featureId: string;
   documentId: string;
 }
+
+/** Whether an investigation payload is synthetic demonstration data or a live result. */
+export type InvestigationDataMode = 'demonstration' | 'live';
+
+/** Trace step counts after which each workspace section becomes available during replay. */
+export interface RevealAfterStep {
+  features: number;
+  queries: number;
+  documents: number;
+  comparison: number;
+}
+
+/**
+ * One complete investigation payload. UI screens render from this object;
+ * a future `/api/investigate` response should return the same shape.
+ */
+export interface InvestigationResult {
+  invention: Invention;
+  mode: InvestigationDataMode;
+  features: TechnicalFeature[];
+  searchQueries: SearchQuery[];
+  documents: CandidateDocument[];
+  evidenceMatches: EvidenceMatch[];
+  researchGaps: ResearchGaps;
+  traceSteps: TraceStep[];
+  revealAfterStep: RevealAfterStep;
+}

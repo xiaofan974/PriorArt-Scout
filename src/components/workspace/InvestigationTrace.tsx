@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRightIcon, CheckCircle2Icon, ChevronDownIcon, CircleIcon, Loader2Icon } from 'lucide-react';
-import { documents, features, revealAfterStep, searchQueries, traceSteps } from '../../data/demoInvestigation';
 import { validateEvidence } from '../../utils/evidence';
 import { validateSourcePhrases } from '../../utils/sourcePhrase';
-import type { InvestigationStatus } from '../../types/investigation';
+import type { InvestigationResult, InvestigationStatus } from '../../types/investigation';
 
 interface InvestigationTraceProps {
+  result: InvestigationResult;
   status: InvestigationStatus;
   completedSteps: number;
   onViewReport: () => void;
 }
 
-export function InvestigationTrace({ status, completedSteps, onViewReport }: InvestigationTraceProps) {
+export function InvestigationTrace({ result, status, completedSteps, onViewReport }: InvestigationTraceProps) {
   const [collapsed, setCollapsed] = useState(false);
   const complete = status === 'complete';
 
@@ -21,9 +21,10 @@ export function InvestigationTrace({ status, completedSteps, onViewReport }: Inv
     if (status === 'running') setCollapsed(false);
   }, [status]);
 
+  const { features, searchQueries, documents, traceSteps, revealAfterStep } = result;
   const elapsedMs = traceSteps.slice(0, completedSteps).reduce((sum, s) => sum + s.simulatedMs, 0);
-  const evidence = validateEvidence();
-  const phrases = validateSourcePhrases();
+  const evidence = validateEvidence(result);
+  const phrases = validateSourcePhrases(result.invention.description, features);
   const isCollapsed = complete && collapsed;
 
   const summary: {label: string;value: string;}[] = [

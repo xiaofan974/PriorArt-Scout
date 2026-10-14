@@ -1,14 +1,15 @@
 import { motion } from 'framer-motion';
-import { features } from '../../data/demoInvestigation';
 import { locatePhrase } from '../../utils/sourcePhrase';
+import type { TechnicalFeature } from '../../types/investigation';
 
 interface FeatureListProps {
+  features: TechnicalFeature[];
   description: string;
   activeFeatureId: string | null;
   onSelectFeature: (featureId: string) => void;
 }
 
-export function FeatureList({ description, activeFeatureId, onSelectFeature }: FeatureListProps) {
+export function FeatureList({ features, description, activeFeatureId, onSelectFeature }: FeatureListProps) {
   return (
     <ol className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-white">
       {features.map((f, i) => {
