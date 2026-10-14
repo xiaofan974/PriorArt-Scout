@@ -18,6 +18,7 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
   const liveDone = status === 'extracted';
   const inProgress = status === 'running' || status === 'extracting';
   const live = result.mode === 'live';
+  const curated = result.mode === 'curated';
 
   // Always expanded while the investigation runs.
   useEffect(() => {
@@ -35,11 +36,11 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
   { label: 'Elapsed', value: `${(elapsedMs / 1000).toFixed(1)}s` },
   { label: 'Tool calls', value: `${completedSteps} of ${traceSteps.length}` },
   { label: 'Features', value: completedSteps >= revealAfterStep.features ? String(features.length) : '—' },
-  { label: 'Queries', value: live ? 'Not performed' : completedSteps >= revealAfterStep.queries ? String(searchQueries.length) : '—' },
-  { label: 'Documents', value: live ? 'Not performed' : completedSteps >= revealAfterStep.documents ? String(documents.length) : '—' },
+  { label: 'Queries', value: live ? 'Not performed' : curated || completedSteps >= revealAfterStep.queries ? String(searchQueries.length) : '—' },
+  { label: 'Documents', value: live ? 'Not performed' : curated || completedSteps >= revealAfterStep.documents ? String(documents.length) : '—' },
   {
     label: 'Comparisons',
-    value: live ? 'Not performed' : completedSteps >= revealAfterStep.comparison ? String(features.length * documents.length) : '—'
+    value: live || curated ? 'Not performed' : completedSteps >= revealAfterStep.comparison ? String(features.length * documents.length) : '—'
   },
   { label: 'Source phrases', value: finished ? `${phrases.verified} of ${phrases.total}` : '—' },
   { label: 'Excerpts verified', value: live ? 'Not performed' : complete ? `${evidence.verified} of ${evidence.cited}` : '—' }];
@@ -160,11 +161,13 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
           disabled={!complete}
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-accent-hover active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-ink-4">
           
-          {complete ? 'View evidence report' : live ? 'Evidence report unavailable' : 'Investigation in progress…'}
+          {complete ? 'View evidence report' : live || curated ? 'Evidence report unavailable' : 'Investigation in progress…'}
           {complete && <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />}
         </button>
         <p className="mt-3 text-[11px] leading-snug text-ink-3">
-          {live ?
+          {curated ?
+          'Keyword overlap in a preselected corpus. Not a disclosure finding or a full prior-art search.' :
+          live ?
           'Records feature extraction only. Patent search and comparison were not run.' :
           'Shows observable tool actions and their results. Timings are simulated; no live AI or patent database calls are made.'}
         </p>

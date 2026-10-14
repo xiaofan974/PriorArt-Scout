@@ -1,6 +1,6 @@
 import { MIN_DESCRIPTION_LENGTH } from '../config/limits';
 
-export type StartAction = 'too_short' | 'demo' | 'live' | 'unavailable';
+export type StartAction = 'too_short' | 'demo' | 'live' | 'curated' | 'unavailable';
 
 export function resolveStartAction(
   description: string,
@@ -10,5 +10,5 @@ export function resolveStartAction(
   const trimmed = description.trim();
   if (trimmed.length < MIN_DESCRIPTION_LENGTH) return 'too_short';
   if (trimmed === exampleDescription) return 'demo';
-  return liveEnabled ? 'live' : 'unavailable';
+  return liveEnabled ? 'live' : 'curated';
 }

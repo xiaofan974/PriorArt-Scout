@@ -35,6 +35,14 @@ export function StatusPill({ status, completedSteps, totalSteps }: StatusPillPro
       </span>);
 
   }
+  if (status === 'retrieved') {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-2 py-0.5 text-xs font-medium text-ink-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-partial" aria-hidden="true" />
+        Curated Research
+      </span>);
+
+  }
   if (status === 'extraction_failed') {
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-partial-line bg-partial-soft px-2 py-0.5 text-xs font-medium text-partial">

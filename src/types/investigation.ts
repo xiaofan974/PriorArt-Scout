@@ -9,7 +9,8 @@ export type InvestigationStatus =
   | 'complete'
   | 'extracting'
   | 'extracted'
-  | 'extraction_failed';
+  | 'extraction_failed'
+  | 'retrieved';
 
 export type MatchStatus = 'supported' | 'partial' | 'not_established';
 
@@ -41,6 +42,8 @@ export interface SourcePassage {
   id: string;
   section: 'Abstract' | 'Summary' | 'Description';
   text: string;
+  /** Section or claim label for a curated patent passage. */
+  reference?: string;
 }
 
 export interface CandidateDocument {
@@ -104,7 +107,7 @@ export interface MatrixSelection {
 }
 
 /** Whether an investigation payload is synthetic demonstration data or a live result. */
-export type InvestigationDataMode = 'demonstration' | 'live';
+export type InvestigationDataMode = 'demonstration' | 'live' | 'curated';
 
 /** Trace step counts after which each workspace section becomes available during replay. */
 export interface RevealAfterStep {

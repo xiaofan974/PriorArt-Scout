@@ -14,7 +14,7 @@ describe('resolveStartAction', () => {
   it('routes custom text to live extraction only when advertised', () => {
     const custom = `${example} with an extra custom clause about a radio beacon.`;
     expect(resolveStartAction(custom, example, true)).toBe('live');
-    expect(resolveStartAction(custom, example, false)).toBe('unavailable');
+    expect(resolveStartAction(custom, example, false)).toBe('curated');
   });
 
   it('rejects short input', () => {

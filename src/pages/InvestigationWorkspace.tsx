@@ -8,7 +8,9 @@ import { SearchStrategy } from '../components/workspace/SearchStrategy';
 import { DocumentRecord } from '../components/workspace/DocumentRecord';
 import { InvestigationTrace } from '../components/workspace/InvestigationTrace';
 import { InventionDescription } from '../components/workspace/InventionDescription';
+import { CuratedPassages } from '../components/workspace/CuratedPassages';
 import { NotPerformed } from '../components/workspace/NotPerformed';
+import { curatedRetrievalForResult } from '../data/curatedResult';
 import type { InvestigationResult, InvestigationStatus } from '../types/investigation';
 
 interface InvestigationWorkspaceProps {
@@ -47,13 +49,15 @@ export function InvestigationWorkspace({
   };
   const { features, searchQueries, documents, traceSteps, revealAfterStep, mode } = result;
   const live = mode === 'live';
+  const curated = mode === 'curated';
   const complete = status === 'complete';
   const extracted = status === 'extracted';
   const failed = status === 'extraction_failed';
-  const showFeatures = live ? extracted : completedSteps >= revealAfterStep.features;
-  const showQueries = !live && completedSteps >= revealAfterStep.queries;
-  const showDocuments = !live && completedSteps >= revealAfterStep.documents;
-  const comparisonReady = !live && completedSteps >= revealAfterStep.comparison;
+  const showFeatures = live ? extracted : curated || completedSteps >= revealAfterStep.features;
+  const showQueries = !live && (curated || completedSteps >= revealAfterStep.queries);
+  const showDocuments = !live && (curated || completedSteps >= revealAfterStep.documents);
+  const comparisonReady = !live && !curated && completedSteps >= revealAfterStep.comparison;
+  const curatedRetrieval = curated ? curatedRetrievalForResult(submittedDescription) : [];
   const currentStep = traceSteps[completedSteps];
 
   return (
@@ -62,7 +66,9 @@ export function InvestigationWorkspace({
         <div className="min-w-0">
           <header>
             <h1 className="text-2xl font-semibold tracking-[-0.01em] text-ink">
-              {live && failed ?
+              {curated ?
+              'Curated Research' :
+              live && failed ?
               'Feature extraction' :
               live && extracted ?
               'Technical features' :
@@ -71,7 +77,9 @@ export function InvestigationWorkspace({
               'Investigating your invention'}
             </h1>
             <p className="mt-1.5 text-sm text-ink-2" aria-live="polite">
-              {complete ?
+              {curated ?
+              `Searched ${documents.length} preselected publication${documents.length === 1 ? '' : 's'}. This is not comprehensive prior-art coverage.` :
+              complete ?
               `Investigation complete. ${documents.length} candidate documents are ready for review.` :
               extracted ?
               'Feature extraction complete. Patent search and evidence comparison were not performed.' :
@@ -89,6 +97,17 @@ export function InvestigationWorkspace({
             showPhrases={showFeatures}
             onClear={() => setActiveFeatureId(null)} />
           
+
+          {curated &&
+          <div className="mt-3 flex gap-2.5 rounded-lg border border-line bg-subtle px-4 py-3">
+              <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
+              <p className="text-[13px] leading-relaxed text-ink-2">
+                Curated Research searches a limited, preselected patent corpus using description keywords. Overlap
+                is not proof of technical disclosure, and the evidence report stays unavailable until a grounded
+                assessment exists.
+              </p>
+            </div>
+          }
 
           {live &&
           <div className="mt-3 flex gap-2.5 rounded-lg border border-partial-line bg-partial-soft px-4 py-3">
@@ -136,7 +155,13 @@ export function InvestigationWorkspace({
             <SectionHeader
               id="strategy-heading"
               title="Search strategy"
-              description={live ? 'Patent search was not performed.' : 'Generated search concepts and the features each one targets.'}
+              description={
+              curated ?
+              'Normalized keywords from each description segment. Not a model-planned search.' :
+              live ?
+              'Patent search was not performed.' :
+              'Generated search concepts and the features each one targets.'
+              }
               meta={showQueries ? `${searchQueries.length} queries` : undefined} />
             
             {live ?
@@ -151,11 +176,19 @@ export function InvestigationWorkspace({
           <section className="mt-9" aria-labelledby="documents-heading">
             <SectionHeader
               id="documents-heading"
-              title="Candidate documents"
-              description={live ? 'Document retrieval was not performed.' : 'Synthetic demonstration records, ranked by feature overlap.'}
+              title={curated ? 'Curated passages' : 'Candidate documents'}
+              description={
+              curated ?
+              'Exact text from the preselected publications. Ranked by keyword overlap only.' :
+              live ?
+              'Document retrieval was not performed.' :
+              'Synthetic demonstration records, ranked by feature overlap.'
+              }
               meta={showDocuments ? `${documents.length} retrieved` : undefined} />
             
-            {live ?
+            {curated ?
+            <CuratedPassages retrieval={curatedRetrieval} /> :
+            live ?
             <NotPerformed label="No patent documents were retrieved for this description." /> :
             showDocuments ?
             <div className="space-y-3">
@@ -196,7 +229,7 @@ export function InvestigationWorkspace({
               disabled={!complete}
               className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-accent-hover active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-ink-4">
               
-              {live ? 'Evidence report unavailable' : 'View evidence report'}
+              {live || curated ? 'Evidence report unavailable' : 'View evidence report'}
               <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>

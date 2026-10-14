@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { requestFeatureExtraction, ExtractionApiError } from '../api/extractFeaturesClient';
 import { isLiveExtractionAdvertised } from '../config/liveExtraction';
 import { createDemoInvestigationResult } from '../data/demoResult';
+import { createCuratedResearchResult } from '../data/curatedResult';
 import { createLiveExtractionPendingResult, createLiveExtractionResult } from '../data/liveResult';
 import { deriveTitle } from '../utils/deriveTitle';
 import { investigationAvailability } from './investigationAvailability';
@@ -30,6 +31,7 @@ export interface InvestigationState {
   applyExample: () => void;
   startDemo: () => void;
   startLive: () => void;
+  startCurated: () => void;
   retryExtraction: () => void;
   navigate: (view: InvestigationView) => void;
   /** The workflow screen the user came from before opening the Research Guide. */
@@ -111,6 +113,19 @@ export function useInvestigation(): InvestigationState {
     }
   }, []);
 
+  const startCurated = useCallback(() => {
+    const trimmed = description.trim();
+    if (!trimmed || trimmed === exampleDescription) return;
+    extractAbort.current?.abort();
+    setExtractionError(null);
+    setSubmittedDescription(trimmed);
+    const curated = createCuratedResearchResult(trimmed);
+    setResult(curated);
+    setCompletedSteps(curated.traceSteps.length);
+    setStatus('retrieved');
+    setView('workspace');
+  }, [description, exampleDescription]);
+
   const startLive = useCallback(() => {
     const trimmed = description.trim();
     if (!trimmed) return;
@@ -153,6 +168,8 @@ export function useInvestigation(): InvestigationState {
   'New investigation' :
   result?.mode === 'demonstration' ?
   result.invention.title :
+  result?.mode === 'curated' ?
+  result.invention.title :
   deriveTitle(submittedDescription || description);
 
   return {
@@ -172,6 +189,7 @@ export function useInvestigation(): InvestigationState {
     applyExample,
     startDemo,
     startLive,
+    startCurated,
     retryExtraction,
     navigate,
     returnView,

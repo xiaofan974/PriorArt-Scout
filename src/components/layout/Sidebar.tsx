@@ -154,10 +154,18 @@ function SidebarContent({ view, availability, title, status, completedSteps, tot
       <div className="mt-auto rounded-lg border border-line bg-white px-3 py-2.5">
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-partial" aria-hidden="true" />
-          <p className="text-xs font-medium text-ink">{status === 'extracted' || status === 'extracting' || status === 'extraction_failed' ? 'Live extraction' : 'Demo mode'}</p>
+          <p className="text-xs font-medium text-ink">
+            {status === 'retrieved' ?
+            'Curated Research' :
+            status === 'extracted' || status === 'extracting' || status === 'extraction_failed' ?
+            'Live extraction' :
+            'Demo mode'}
+          </p>
         </div>
         <p className="mt-1 text-[11px] leading-snug text-ink-3">
-          {status === 'extracted' || status === 'extracting' || status === 'extraction_failed' ?
+          {status === 'retrieved' ?
+          'Limited preselected patents. Not comprehensive coverage.' :
+          status === 'extracted' || status === 'extracting' || status === 'extraction_failed' ?
           'Feature extraction only. Patent search was not performed.' :
           'Synthetic data only. No live AI or patent database calls.'}
         </p>

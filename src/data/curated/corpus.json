@@ -1,0 +1,94 @@
+{
+  "corpusId": "curated-helmet-v1",
+  "source": "Google Patents",
+  "note": "A small preselected set of English-language patent publications. Keyword overlap is not a finding that a feature is disclosed.",
+  "publications": [
+    {
+      "id": "US8860570B2",
+      "title": "Portable wireless personal head impact reporting system",
+      "publicationDate": "2014-10-14",
+      "sourceUrl": "https://patents.google.com/patent/US8860570B2/en",
+      "sourceLanguage": "en"
+    },
+    {
+      "id": "US10897947B2",
+      "title": "Smart helmet fall detection method and smart helmet",
+      "publicationDate": "2021-01-26",
+      "sourceUrl": "https://patents.google.com/patent/US10897947B2/en",
+      "sourceLanguage": "en"
+    },
+    {
+      "id": "US11406152B2",
+      "title": "Integrated smart helmet and methods and systems of controlling smart helmet",
+      "publicationDate": "2022-08-09",
+      "sourceUrl": "https://patents.google.com/patent/US11406152B2/en",
+      "sourceLanguage": "en"
+    }
+  ],
+  "passages": [
+    {
+      "id": "US8860570B2-C1",
+      "publicationId": "US8860570B2",
+      "reference": "Claim 1",
+      "sourceUrl": "https://patents.google.com/patent/US8860570B2/en",
+      "sourceLanguage": "en",
+      "text": "A system for sensing, analyzing, and reporting one or more collision events of a person or object with another person, or object, said system comprising: a sensor module consisting of at least one sensor configured to be operationally connected to one or more persons or objects and capable of sensing angular velocity of said person or object as a result of said collision events over time and of producing first signals comprising information representing properties of said angular velocity over time; a sensor module processor in signal communication with said sensor module and programmed to analyze said information and compare it to one or more threshold values indicative of a severity of said collision events; and a transmitter in communication with an output of the sensor module processor to produce a second signal comprising data representing the results of said comparison(s) for transmission to a separate communication device programmed to provide a notification of a severe collision in response to the second signal."
+    },
+    {
+      "id": "US8860570B2-C2",
+      "publicationId": "US8860570B2",
+      "reference": "Claim 2",
+      "sourceUrl": "https://patents.google.com/patent/US8860570B2/en",
+      "sourceLanguage": "en",
+      "text": "The system of claim 1 wherein said sensor module comprises one or more elements selected from the group consisting of: gyroscopes, 3-axis accelerometers, MEMS (microelectric mechanical systems), piezoelectric accelerometers, force or strain gauges or transducers, and force-sensing textiles."
+    },
+    {
+      "id": "US10897947B2-C1",
+      "publicationId": "US10897947B2",
+      "reference": "Claim 1",
+      "sourceUrl": "https://patents.google.com/patent/US10897947B2/en",
+      "sourceLanguage": "en",
+      "text": "A smart helmet falling detection method, characterized by including following steps: monitoring acceleration of three axes according to a predetermined monitoring frequency; calculating a vector sum of the acceleration of the three axes, and determining whether a free fall event occurs according to whether the vector sum of the acceleration satisfies a first predetermined condition; determining whether a collision even occurs according to whether the acceleration of any axis of the three axes satisfies a second predetermined condition; determining whether a motionlessness event occurs according to whether an acceleration variation detected for each axis meets a third predetermined condition; and generating an emergency signal according to whether the motionlessness event meets a fourth predetermined condition."
+    },
+    {
+      "id": "US10897947B2-C6",
+      "publicationId": "US10897947B2",
+      "reference": "Claim 6",
+      "sourceUrl": "https://patents.google.com/patent/US10897947B2/en",
+      "sourceLanguage": "en",
+      "text": "The smart helmet falling detection method according to claim 1 , characterized in that the falling detection method further including: detecting whether the motionlessness event occurs continuously; and generating an alarm cancellation signal to stop the emergency signal if the motionlessness event is not detected continuously three times."
+    },
+    {
+      "id": "US10897947B2-D-GPS",
+      "publicationId": "US10897947B2",
+      "reference": "Description",
+      "sourceUrl": "https://patents.google.com/patent/US10897947B2/en",
+      "sourceLanguage": "en",
+      "text": "In one implementation, the smart helmet further comprises a GPS positioning module and a wireless communication module, the GPS positioning module is configured to send current geographical position information to the controller, and the wireless communication module is configured to send emergency information to a predetermined number via a mobile terminal associated with the smart helmet, wherein the emergency information carries the current geographical position information."
+    },
+    {
+      "id": "US11406152B2-C1",
+      "publicationId": "US11406152B2",
+      "reference": "Claim 1",
+      "sourceUrl": "https://patents.google.com/patent/US11406152B2/en",
+      "sourceLanguage": "en",
+      "text": "An integrated smart helmet system, comprising: a control unit-printed circuit board (PCB) is wirelessly connected to a computing device over a network, whereby the computing device is configured to enable a user to use different functionalities without having to remove a smart helmet and access the computing device and the control unit-PCB is configured to detect crashes while wearing the smart helmet by the user and notify the crash detected information to the computing device over the network; and buttons are positioned at the rear or on the side of the smart helmet and the control unit-PCB is electrically coupled to the buttons, the buttons are configured to initiate prompts to direct the user to put away the computing device while driving and also disable certain dangerous functions, the control unit-PCB is electrically coupled to ultrasonic sensors placed at blind spot detection angles and the ultrasonic sensors are configured to scan and report objects in a user's blind spot."
+    },
+    {
+      "id": "US11406152B2-D-DROP",
+      "publicationId": "US11406152B2",
+      "reference": "Description",
+      "sourceUrl": "https://patents.google.com/patent/US11406152B2/en",
+      "sourceLanguage": "en",
+      "text": "The smart helmet may know when you have accidentally dropped your helmet or when you are involved in a fatal crash."
+    },
+    {
+      "id": "US11406152B2-D-CANCEL",
+      "publicationId": "US11406152B2",
+      "reference": "Description",
+      "sourceUrl": "https://patents.google.com/patent/US11406152B2/en",
+      "sourceLanguage": "en",
+      "text": "Allowing the user to select the timer to cancel the SOS at step 1004 ."
+    }
+  ]
+}

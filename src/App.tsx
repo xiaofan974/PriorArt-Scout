@@ -76,6 +76,7 @@ export function App() {
               onTryExample={inv.applyExample}
               onStartDemo={inv.startDemo}
               onStartLive={inv.startLive}
+              onStartCurated={inv.startCurated}
               onResume={() => inv.navigate('workspace')} />
 
             }
