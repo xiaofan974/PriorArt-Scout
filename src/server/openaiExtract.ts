@@ -5,8 +5,8 @@ import {
   DEFAULT_OPENAI_MODEL,
   MAX_FEATURES,
   MAX_OUTPUT_TOKENS } from
-'./extractionConstants';
-import type { RawFeature } from './normalizeFeatures';
+'./extractionConstants.js';
+import type { RawFeature } from './normalizeFeatures.js';
 
 const rawFeatureSchema = z.object({
   label: z.string(),

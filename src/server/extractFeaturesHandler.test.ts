@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { EXTRACTION_BUDGET_MS, EXTRACTION_TIMEOUT_MS, FUNCTION_MAX_DURATION_MS } from './extractionConstants';
 import { handleExtractFeaturesRequest } from './extractFeaturesHandler';
@@ -38,6 +39,34 @@ function request(
 }
 
 describe('handleExtractFeaturesRequest', () => {
+  it('does not statically import the OpenAI adapter', () => {
+    const source = readFileSync(new URL('./extractFeaturesHandler.ts', import.meta.url), 'utf8');
+    expect(source).toMatch(/await import\(specifier\)/);
+    expect(source).not.toMatch(/^import \{[^}]*extractFeaturesFromModel[^}]*\} from ['"].\/openaiExtract/m);
+  });
+
+  it('returns METHOD_NOT_ALLOWED for GET without loading a model adapter', async () => {
+    const result = await handleExtractFeaturesRequest({
+      method: 'GET',
+      contentType: 'application/json',
+      rawBody: '',
+      env: {}
+    });
+    expect(result.status).toBe(405);
+    expect(result.body).toMatchObject({ error: { code: 'METHOD_NOT_ALLOWED' } });
+  });
+
+  it('returns SERVICE_UNAVAILABLE for a valid POST when the production gate is off, without a model adapter', async () => {
+    const result = await handleExtractFeaturesRequest({
+      method: 'POST',
+      contentType: 'application/json',
+      rawBody: JSON.stringify({ description: VALID_DESCRIPTION }),
+      env: {}
+    });
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ error: { code: 'SERVICE_UNAVAILABLE' } });
+  });
+
   it('keeps the OpenAI retry budget below the serverless maxDuration', () => {
     expect(EXTRACTION_BUDGET_MS).toBeLessThan(FUNCTION_MAX_DURATION_MS);
     expect(EXTRACTION_TIMEOUT_MS).toBeLessThanOrEqual(EXTRACTION_BUDGET_MS);

@@ -8,10 +8,12 @@ import {
   errorBody,
   isLiveExtractionEnabled,
   type ExtractionErrorBody } from
-'./extractionConstants';
-import { extractFeaturesFromModel } from './openaiExtract';
-import { normalizeFeatures, type RawFeature } from './normalizeFeatures';
-import type { TechnicalFeature } from '../types/investigation';
+'./extractionConstants.js';
+import type { extractFeaturesFromModel } from './openaiExtract.js';
+import { normalizeFeatures, type RawFeature } from './normalizeFeatures.js';
+import type { TechnicalFeature } from '../types/investigation.js';
+
+type ExtractFromModel = typeof extractFeaturesFromModel;
 
 export const extractRequestSchema = z.object({
   description: z.string().trim().min(MIN_DESCRIPTION_LENGTH).max(MAX_DESCRIPTION_LENGTH)
@@ -23,7 +25,7 @@ export interface ExtractHandlerInput {
   contentLength?: string | number;
   rawBody: unknown;
   env?: NodeJS.Dict<string>;
-  extractFromModel?: typeof extractFeaturesFromModel;
+  extractFromModel?: ExtractFromModel;
   now?: () => number;
 }
 
@@ -85,9 +87,17 @@ function mapProviderError(error: unknown): ExtractHandlerResult {
   return { status: 502, body: errorBody('EXTRACTION_FAILED') };
 }
 
+async function loadExtractFromModel(): Promise<ExtractFromModel> {
+  // Keep the specifier from being a bundler string literal so the OpenAI SDK is
+  // not inlined into the serverless entry (ESM bundles crash on node-fetch).
+  const specifier = '.' + '/openaiExtract.js';
+  const adapter = (await import(specifier)) as {extractFeaturesFromModel: ExtractFromModel;};
+  return adapter.extractFeaturesFromModel;
+}
+
 async function extractWithValidation(
   description: string,
-  extractFromModel: typeof extractFeaturesFromModel,
+  extractFromModel: ExtractFromModel,
   env: NodeJS.Dict<string>,
   now: () => number
 ): Promise<TechnicalFeature[]> {
@@ -177,7 +187,7 @@ export async function handleExtractFeaturesRequest(
   }
 
   try {
-    const extractFromModel = input.extractFromModel ?? extractFeaturesFromModel;
+    const extractFromModel = input.extractFromModel ?? (await loadExtractFromModel());
     const features = await extractWithValidation(description, extractFromModel, env, input.now ?? Date.now);
     return { status: 200, body: { mode: 'live', features } };
   } catch (error) {

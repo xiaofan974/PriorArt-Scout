@@ -1,15 +1,30 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleExtractFeaturesRequest } from '../src/server/extractFeaturesHandler';
+import { handleExtractFeaturesRequest } from '../src/server/extractFeaturesHandler.js';
 
 export const config = {
   maxDuration: 30
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+interface FunctionRequest {
+  method?: string;
+  headers: { [key: string]: string | string[] | undefined };
+  body?: unknown;
+}
+
+interface FunctionResponse {
+  status: (code: number) => FunctionResponse;
+  json: (body: unknown) => void;
+}
+
+function headerValue(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
+export default async function handler(req: FunctionRequest, res: FunctionResponse): Promise<void> {
   const result = await handleExtractFeaturesRequest({
     method: req.method,
-    contentType: req.headers['content-type'],
-    contentLength: req.headers['content-length'],
+    contentType: headerValue(req.headers['content-type']),
+    contentLength: headerValue(req.headers['content-length']),
     rawBody: req.body
   });
   res.status(result.status).json(result.body);

@@ -1,6 +1,6 @@
-import { locatePhrase } from '../utils/sourcePhrase';
-import type { TechnicalFeature } from '../types/investigation';
-import { MAX_FEATURES } from './extractionConstants';
+import { locatePhrase } from '../utils/sourcePhrase.js';
+import type { TechnicalFeature } from '../types/investigation.js';
+import { MAX_FEATURES } from './extractionConstants.js';
 
 export interface RawFeature {
   label: string;
