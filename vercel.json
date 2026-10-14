@@ -3,6 +3,9 @@
   "functions": {
     "api/extract-features.js": {
       "maxDuration": 30
+    },
+    "api/search-patents.js": {
+      "maxDuration": 30
     }
   }
 }

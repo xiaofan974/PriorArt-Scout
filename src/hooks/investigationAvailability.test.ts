@@ -16,6 +16,9 @@ describe('investigationAvailability', () => {
 
   it('does not unlock the evidence report after curated retrieval', () => {
     expect(investigationAvailability('retrieved').report).toBe(false);
+    expect(investigationAvailability('epo_ready').report).toBe(false);
+    expect(investigationAvailability('epo_failed').report).toBe(false);
+    expect(investigationAvailability('epo_searching').workspace).toBe(true);
     expect(investigationAvailability('retrieved').workspace).toBe(true);
   });
 

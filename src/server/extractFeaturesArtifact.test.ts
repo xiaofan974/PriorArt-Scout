@@ -129,8 +129,12 @@ describe('CJS extract-features artifact', () => {
     const vercelConfig = JSON.parse(readFileSync(path.join(ROOT, 'vercel.json'), 'utf8')) as {
       functions: Record<string, unknown>;
     };
-    expect(Object.keys(vercelConfig.functions)).toEqual(['api/extract-features.js']);
+    expect(Object.keys(vercelConfig.functions).sort()).toEqual([
+      'api/extract-features.js',
+      'api/search-patents.js'
+    ]);
     expect(vercelConfig.functions['api/extract-features.js']).not.toHaveProperty('includeFiles');
+    expect(vercelConfig.functions['api/search-patents.js']).not.toHaveProperty('includeFiles');
   });
 
   it('returns METHOD_NOT_ALLOWED for GET without loading OpenAI', async () => {

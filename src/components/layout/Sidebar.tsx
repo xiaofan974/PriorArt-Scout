@@ -155,7 +155,9 @@ function SidebarContent({ view, availability, title, status, completedSteps, tot
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-partial" aria-hidden="true" />
           <p className="text-xs font-medium text-ink">
-            {status === 'assessed' ?
+            {status === 'epo_searching' || status === 'epo_ready' || status === 'epo_failed' ?
+            'Live EPO Search' :
+            status === 'assessed' ?
             'Curated assessment' :
             status === 'retrieved' ?
             'Curated Research' :
@@ -165,7 +167,9 @@ function SidebarContent({ view, availability, title, status, completedSteps, tot
           </p>
         </div>
         <p className="mt-1 text-[11px] leading-snug text-ink-3">
-          {status === 'assessed' ?
+          {status === 'epo_searching' || status === 'epo_ready' || status === 'epo_failed' ?
+          'Publication discovery only. No evidence assessment.' :
+          status === 'assessed' ?
           'Reviewed fixture. Limited corpus. Not a legal opinion.' :
           status === 'retrieved' ?
           'Limited preselected patents. Not comprehensive coverage.' :

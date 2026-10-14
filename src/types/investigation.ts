@@ -11,7 +11,10 @@ export type InvestigationStatus =
   | 'extracted'
   | 'extraction_failed'
   | 'retrieved'
-  | 'assessed';
+  | 'assessed'
+  | 'epo_searching'
+  | 'epo_ready'
+  | 'epo_failed';
 
 export type MatchStatus = 'supported' | 'partial' | 'not_established';
 

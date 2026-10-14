@@ -6,6 +6,7 @@ import { NewInvestigation } from './pages/NewInvestigation';
 import { InvestigationWorkspace } from './pages/InvestigationWorkspace';
 import { EvidenceReport } from './pages/EvidenceReport';
 import { ResearchGuide } from './pages/ResearchGuide';
+import { EpoDiscovery } from './pages/EpoDiscovery';
 import { useInvestigation } from './hooks/useInvestigation';
 import type { InvestigationView, WorkflowView } from './types/investigation';
 
@@ -78,10 +79,20 @@ export function App() {
               onStartLive={inv.startLive}
               onStartCurated={inv.startCurated}
               onStartCuratedAssessment={inv.startCuratedAssessment}
+              liveEpoAdvertised={inv.liveEpoAdvertised}
+              onStartEpoSearch={inv.startEpoSearch}
               onResume={() => inv.navigate('workspace')} />
 
             }
-            {inv.view === 'workspace' && inv.result &&
+            {inv.view === 'workspace' && (inv.status === 'epo_searching' || inv.status === 'epo_ready' || inv.status === 'epo_failed') &&
+            <EpoDiscovery
+              query={inv.epoQuery}
+              status={inv.status}
+              result={inv.epoSearch}
+              error={inv.epoError}
+              onStartNew={inv.startNew} />
+            }
+            {inv.view === 'workspace' && inv.result && inv.status !== 'epo_searching' && inv.status !== 'epo_ready' && inv.status !== 'epo_failed' &&
             <InvestigationWorkspace
               result={inv.result}
               submittedDescription={inv.submittedDescription}

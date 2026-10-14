@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { ArrowRightIcon, InfoIcon, SparklesIcon } from 'lucide-react';
 import { MIN_DESCRIPTION_LENGTH } from '../config/limits';
+import { HELMET_COLLISION_QUERY } from '../epo/contract';
 import { resolveStartAction } from '../hooks/startAction';
 
 interface NewInvestigationProps {
@@ -13,6 +15,8 @@ interface NewInvestigationProps {
   onStartLive: () => void;
   onStartCurated: () => void;
   onStartCuratedAssessment: () => void;
+  liveEpoAdvertised: boolean;
+  onStartEpoSearch: (query: string) => void;
   onResume: () => void;
 }
 
@@ -34,8 +38,11 @@ export function NewInvestigation({
   onStartLive,
   onStartCurated,
   onStartCuratedAssessment,
+  liveEpoAdvertised,
+  onStartEpoSearch,
   onResume
 }: NewInvestigationProps) {
+  const [epoQuery, setEpoQuery] = useState(HELMET_COLLISION_QUERY);
   const length = description.trim().length;
   const action = resolveStartAction(description, exampleDescription, liveExtractionEnabled);
   const canSubmit = action === 'demo' || action === 'live' || action === 'curated';
@@ -159,6 +166,35 @@ export function NewInvestigation({
             Search curated corpus
           </button>
         </div>
+      }
+
+      {liveEpoAdvertised &&
+      <form
+        className="mt-4 rounded-lg border border-line bg-white px-4 py-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const query = epoQuery.trim();
+          if (query.length > 0 && query.length <= 200) onStartEpoSearch(query);
+        }}>
+          <p className="text-[13px] font-medium text-ink">Live EPO Search</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-ink-2">
+            Searches EPO Open Patent Services with the query below. Live patent discovery — no evidence assessment
+            performed. This does not run the demonstration or the curated assessment.
+          </p>
+          <label htmlFor="epo-query" className="mt-3 block text-xs font-medium text-ink-3">Search query</label>
+          <input
+            id="epo-query"
+            value={epoQuery}
+            maxLength={200}
+            onChange={(event) => setEpoQuery(event.target.value)}
+            className="mt-1 w-full rounded-md border border-line bg-canvas px-3 py-2 font-mono text-[13px] text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" />
+          <button
+            type="submit"
+            disabled={epoQuery.trim().length === 0 || epoQuery.trim().length > 200}
+            className="mt-3 font-medium text-accent transition-colors duration-150 hover:text-accent-hover focus:outline-none focus-visible:underline disabled:text-ink-4">
+            Search EPO OPS
+          </button>
+        </form>
       }
 
       {action === 'unavailable' &&

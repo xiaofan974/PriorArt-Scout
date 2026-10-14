@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { requestFeatureExtraction, ExtractionApiError } from '../api/extractFeaturesClient';
+import { PatentSearchApiError, requestPatentSearch } from '../api/searchPatentsClient';
+import { isLiveEpoAdvertised } from '../config/liveEpo';
+import type { EpoSearchPayload } from '../epo/contract';
 import { isLiveExtractionAdvertised } from '../config/liveExtraction';
 import { createDemoInvestigationResult } from '../data/demoResult';
 import { createHelmetAssessmentResult } from '../assessment/helmetAssessment';
@@ -35,6 +38,11 @@ export interface InvestigationState {
   startLive: () => void;
   startCurated: () => void;
   startCuratedAssessment: () => void;
+  startEpoSearch: (query: string) => void;
+  liveEpoAdvertised: boolean;
+  epoSearch: EpoSearchPayload | null;
+  epoQuery: string;
+  epoError: string | null;
   retryExtraction: () => void;
   navigate: (view: InvestigationView) => void;
   /** The workflow screen the user came from before opening the Research Guide. */
@@ -54,6 +62,9 @@ export function useInvestigation(): InvestigationState {
   const [returnView, setReturnView] = useState<WorkflowView>('new');
   const [result, setResult] = useState<InvestigationResult | null>(null);
   const [extractionError, setExtractionError] = useState<string | null>(null);
+  const [epoSearch, setEpoSearch] = useState<EpoSearchPayload | null>(null);
+  const [epoError, setEpoError] = useState<string | null>(null);
+  const [epoQuery, setEpoQuery] = useState('');
   const extractAbort = useRef<AbortController | null>(null);
 
   const traceSteps = result?.traceSteps ?? [];
@@ -166,6 +177,34 @@ export function useInvestigation(): InvestigationState {
     setView(availability[returnView] ? returnView : 'new');
   }, [availability, returnView]);
 
+  const startEpoSearch = useCallback((query: string) => {
+    extractAbort.current?.abort();
+    const controller = new AbortController();
+    extractAbort.current = controller;
+    setResult(null);
+    setExtractionError(null);
+    setEpoSearch(null);
+    setEpoError(null);
+    setEpoQuery(query);
+    setCompletedSteps(0);
+    setStatus('epo_searching');
+    setView('workspace');
+    void requestPatentSearch(query, controller.signal)
+      .then((payload) => {
+        if (controller.signal.aborted) return;
+        setEpoSearch(payload);
+        setStatus('epo_ready');
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        const message = error instanceof PatentSearchApiError
+          ? error.message
+          : 'EPO OPS search could not be completed.';
+        setEpoError(message);
+        setStatus('epo_failed');
+      });
+  }, []);
+
   const startNew = useCallback(() => {
     extractAbort.current?.abort();
     const next = createIdleInvestigationState();
@@ -176,6 +215,9 @@ export function useInvestigation(): InvestigationState {
     setReturnView(next.returnView);
     setResult(next.result);
     setExtractionError(null);
+    setEpoSearch(null);
+    setEpoError(null);
+    setEpoQuery('');
     setView(next.view);
   }, []);
 
@@ -186,6 +228,8 @@ export function useInvestigation(): InvestigationState {
   result.invention.title :
   result?.mode === 'curated' ?
   result.invention.title :
+  status === 'epo_searching' || status === 'epo_ready' || status === 'epo_failed' ?
+  'Live EPO Search' :
   deriveTitle(submittedDescription || description);
 
   return {
@@ -207,6 +251,11 @@ export function useInvestigation(): InvestigationState {
     startLive,
     startCurated,
     startCuratedAssessment,
+    startEpoSearch,
+    liveEpoAdvertised: isLiveEpoAdvertised(),
+    epoSearch,
+    epoQuery,
+    epoError,
     retryExtraction,
     navigate,
     returnView,
