@@ -12,6 +12,7 @@ interface NewInvestigationProps {
   onStartDemo: () => void;
   onStartLive: () => void;
   onStartCurated: () => void;
+  onStartCuratedAssessment: () => void;
   onResume: () => void;
 }
 
@@ -32,6 +33,7 @@ export function NewInvestigation({
   onStartDemo,
   onStartLive,
   onStartCurated,
+  onStartCuratedAssessment,
   onResume
 }: NewInvestigationProps) {
   const length = description.trim().length;
@@ -128,6 +130,21 @@ export function NewInvestigation({
           </div>
         </div>
       </form>
+
+      {action === 'demo' &&
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-white px-4 py-3">
+          <p className="text-[13px] leading-relaxed text-ink-2">
+            Curated evidence assessment reviews the helmet features against stored passages from the limited patent
+            corpus. It is a reviewed fixture, not a model assessment, and it does not replace the demonstration.
+          </p>
+          <button
+            type="button"
+            onClick={onStartCuratedAssessment}
+            className="font-medium text-accent transition-colors duration-150 hover:text-accent-hover focus:outline-none focus-visible:underline">
+            Assess curated corpus
+          </button>
+        </div>
+      }
 
       {action === 'live' &&
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-white px-4 py-3">

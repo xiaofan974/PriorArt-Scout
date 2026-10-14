@@ -50,6 +50,8 @@ export function InvestigationWorkspace({
   const { features, searchQueries, documents, traceSteps, revealAfterStep, mode } = result;
   const live = mode === 'live';
   const curated = mode === 'curated';
+  const curatedAssessed = curated && status === 'assessed';
+  const curatedRetrievalOnly = curated && !curatedAssessed;
   const complete = status === 'complete';
   const extracted = status === 'extracted';
   const failed = status === 'extraction_failed';
@@ -57,7 +59,7 @@ export function InvestigationWorkspace({
   const showQueries = !live && (curated || completedSteps >= revealAfterStep.queries);
   const showDocuments = !live && (curated || completedSteps >= revealAfterStep.documents);
   const comparisonReady = !live && !curated && completedSteps >= revealAfterStep.comparison;
-  const curatedRetrieval = curated ? curatedRetrievalForResult(submittedDescription) : [];
+  const curatedRetrieval = curatedRetrievalOnly ? curatedRetrievalForResult(submittedDescription) : [];
   const currentStep = traceSteps[completedSteps];
 
   return (
@@ -66,7 +68,9 @@ export function InvestigationWorkspace({
         <div className="min-w-0">
           <header>
             <h1 className="text-2xl font-semibold tracking-[-0.01em] text-ink">
-              {curated ?
+              {curatedAssessed ?
+              'Curated evidence assessment' :
+              curated ?
               'Curated Research' :
               live && failed ?
               'Feature extraction' :
@@ -77,7 +81,9 @@ export function InvestigationWorkspace({
               'Investigating your invention'}
             </h1>
             <p className="mt-1.5 text-sm text-ink-2" aria-live="polite">
-              {curated ?
+              {curatedAssessed ?
+              'Reviewed fixture for the helmet features. Not a model-generated assessment or a comprehensive search.' :
+              curated ?
               `Searched ${documents.length} preselected publication${documents.length === 1 ? '' : 's'}. This is not comprehensive prior-art coverage.` :
               complete ?
               `Investigation complete. ${documents.length} candidate documents are ready for review.` :
@@ -98,13 +104,23 @@ export function InvestigationWorkspace({
             onClear={() => setActiveFeatureId(null)} />
           
 
-          {curated &&
+          {curatedRetrievalOnly &&
           <div className="mt-3 flex gap-2.5 rounded-lg border border-line bg-subtle px-4 py-3">
               <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
               <p className="text-[13px] leading-relaxed text-ink-2">
                 Curated Research searches a limited, preselected patent corpus using description keywords. Overlap
                 is not proof of technical disclosure, and the evidence report stays unavailable until a grounded
                 assessment exists.
+              </p>
+            </div>
+          }
+
+          {curatedAssessed &&
+          <div className="mt-3 flex gap-2.5 rounded-lg border border-line bg-subtle px-4 py-3">
+              <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
+              <p className="text-[13px] leading-relaxed text-ink-2">
+                Curated evidence assessment — limited patent corpus. Assessments cite stored passages only. This is
+                not a comprehensive prior-art search or a legal opinion, and it was not produced by a model.
               </p>
             </div>
           }
@@ -135,7 +151,7 @@ export function InvestigationWorkspace({
           <section className="mt-9" aria-labelledby="features-heading">
             <SectionHeader
               id="features-heading"
-              title="Extracted technical features"
+              title={curatedAssessed ? 'Technical features' : 'Extracted technical features'}
               description="Select a feature to highlight the exact phrase it was derived from."
               meta={showFeatures ? `${features.length} features` : undefined} />
             
@@ -156,6 +172,8 @@ export function InvestigationWorkspace({
               id="strategy-heading"
               title="Search strategy"
               description={
+              curatedAssessed ?
+              'Keyword retrieval for the six features, recorded separately from the reviewed assessment.' :
               curated ?
               'Normalized keywords from each description segment. Not a model-planned search.' :
               live ?
@@ -176,8 +194,10 @@ export function InvestigationWorkspace({
           <section className="mt-9" aria-labelledby="documents-heading">
             <SectionHeader
               id="documents-heading"
-              title={curated ? 'Curated passages' : 'Candidate documents'}
+              title={curatedAssessed ? 'Reviewed assessments' : curated ? 'Curated passages' : 'Candidate documents'}
               description={
+              curatedAssessed ?
+              'Each row cites a stored passage. The evidence report shows the full matrix and the source text.' :
               curated ?
               'Exact text from the preselected publications. Ranked by keyword overlap only.' :
               live ?
@@ -186,7 +206,21 @@ export function InvestigationWorkspace({
               }
               meta={showDocuments ? `${documents.length} retrieved` : undefined} />
             
-            {curated ?
+            {curatedAssessed ?
+            <ul className="divide-y divide-line rounded-xl border border-line bg-white">
+                {(result.assessments ?? []).map((assessment) =>
+                <li key={`${assessment.featureId}-${assessment.passageId}`} className="px-4 py-3">
+                    <p className="text-[13px] font-medium text-ink">
+                      <span className="mr-2 font-mono text-xs text-accent">{assessment.featureId}</span>
+                      <span className="font-mono text-xs text-ink-3">{assessment.publicationId}</span>
+                      <span className="ml-2 text-ink-2">{assessment.assessment.split('_').join(' ')}</span>
+                    </p>
+                    <p className="mt-1 font-mono text-[11px] text-ink-3">{assessment.passageId}</p>
+                    <p className="mt-1 text-[13px] leading-relaxed text-ink-2">{assessment.explanation}</p>
+                  </li>
+                )}
+              </ul> :
+            curated ?
             <CuratedPassages retrieval={curatedRetrieval} /> :
             live ?
             <NotPerformed label="No patent documents were retrieved for this description." /> :
@@ -226,10 +260,10 @@ export function InvestigationWorkspace({
             <button
               type="button"
               onClick={onViewReport}
-              disabled={!complete}
+              disabled={!complete && !curatedAssessed}
               className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-accent-hover active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-ink-4">
               
-              {live || curated ? 'Evidence report unavailable' : 'View evidence report'}
+              {complete || curatedAssessed ? 'View evidence report' : live || curated ? 'Evidence report unavailable' : 'View evidence report'}
               <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>

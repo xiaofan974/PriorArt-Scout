@@ -77,6 +77,7 @@ export function App() {
               onStartDemo={inv.startDemo}
               onStartLive={inv.startLive}
               onStartCurated={inv.startCurated}
+              onStartCuratedAssessment={inv.startCuratedAssessment}
               onResume={() => inv.navigate('workspace')} />
 
             }

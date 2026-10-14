@@ -15,6 +15,7 @@ interface InvestigationTraceProps {
 export function InvestigationTrace({ result, status, completedSteps, onViewReport }: InvestigationTraceProps) {
   const [collapsed, setCollapsed] = useState(false);
   const complete = status === 'complete';
+  const assessed = status === 'assessed' && Boolean(result.assessments?.length);
   const liveDone = status === 'extracted';
   const inProgress = status === 'running' || status === 'extracting';
   const live = result.mode === 'live';
@@ -39,8 +40,8 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
   { label: 'Queries', value: live ? 'Not performed' : curated || completedSteps >= revealAfterStep.queries ? String(searchQueries.length) : '—' },
   { label: 'Documents', value: live ? 'Not performed' : curated || completedSteps >= revealAfterStep.documents ? String(documents.length) : '—' },
   {
-    label: 'Comparisons',
-    value: live || curated ? 'Not performed' : completedSteps >= revealAfterStep.comparison ? String(features.length * documents.length) : '—'
+    label: assessed ? 'Assessments' : 'Comparisons',
+    value: assessed ? String(result.assessments?.length ?? 0) : live || curated ? 'Not performed' : completedSteps >= revealAfterStep.comparison ? String(features.length * documents.length) : '—'
   },
   { label: 'Source phrases', value: finished ? `${phrases.verified} of ${phrases.total}` : '—' },
   { label: 'Excerpts verified', value: live ? 'Not performed' : complete ? `${evidence.verified} of ${evidence.cited}` : '—' }];
@@ -158,14 +159,16 @@ export function InvestigationTrace({ result, status, completedSteps, onViewRepor
         <button
           type="button"
           onClick={onViewReport}
-          disabled={!complete}
+          disabled={!complete && !assessed}
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-medium text-white transition-[background-color,transform] duration-150 hover:bg-accent-hover active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-ink-4">
           
-          {complete ? 'View evidence report' : live || curated ? 'Evidence report unavailable' : 'Investigation in progress…'}
-          {complete && <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />}
+          {complete || assessed ? 'View evidence report' : live || curated ? 'Evidence report unavailable' : 'Investigation in progress…'}
+          {(complete || assessed) && <ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />}
         </button>
         <p className="mt-3 text-[11px] leading-snug text-ink-3">
-          {curated ?
+          {assessed ?
+          'Curated evidence assessment — limited patent corpus. Not a comprehensive prior-art search or a legal opinion.' :
+          curated ?
           'Keyword overlap in a preselected corpus. Not a disclosure finding or a full prior-art search.' :
           live ?
           'Records feature extraction only. Patent search and comparison were not run.' :

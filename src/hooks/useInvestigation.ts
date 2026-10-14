@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { requestFeatureExtraction, ExtractionApiError } from '../api/extractFeaturesClient';
 import { isLiveExtractionAdvertised } from '../config/liveExtraction';
 import { createDemoInvestigationResult } from '../data/demoResult';
+import { createHelmetAssessmentResult } from '../assessment/helmetAssessment';
+import { validateCuratedAssessment } from '../assessment/validateAssessment';
 import { createCuratedResearchResult } from '../data/curatedResult';
 import { createLiveExtractionPendingResult, createLiveExtractionResult } from '../data/liveResult';
 import { deriveTitle } from '../utils/deriveTitle';
@@ -32,6 +34,7 @@ export interface InvestigationState {
   startDemo: () => void;
   startLive: () => void;
   startCurated: () => void;
+  startCuratedAssessment: () => void;
   retryExtraction: () => void;
   navigate: (view: InvestigationView) => void;
   /** The workflow screen the user came from before opening the Research Guide. */
@@ -68,7 +71,7 @@ export function useInvestigation(): InvestigationState {
     return () => window.clearTimeout(timer);
   }, [status, completedSteps, result]);
 
-  const availability = useMemo(() => investigationAvailability(status), [status]);
+  const availability = useMemo(() => investigationAvailability(status, result), [status, result]);
 
   const applyExample = useCallback(() => {
     setDescription(exampleDescription);
@@ -123,6 +126,19 @@ export function useInvestigation(): InvestigationState {
     setResult(curated);
     setCompletedSteps(curated.traceSteps.length);
     setStatus('retrieved');
+    setView('workspace');
+  }, [description, exampleDescription]);
+
+  const startCuratedAssessment = useCallback(() => {
+    if (description.trim() !== exampleDescription) return;
+    extractAbort.current?.abort();
+    setExtractionError(null);
+    const assessed = createHelmetAssessmentResult();
+    const validation = validateCuratedAssessment(assessed);
+    setSubmittedDescription(exampleDescription);
+    setResult(assessed);
+    setCompletedSteps(assessed.traceSteps.length);
+    setStatus(validation.ok ? 'assessed' : 'retrieved');
     setView('workspace');
   }, [description, exampleDescription]);
 
@@ -190,6 +206,7 @@ export function useInvestigation(): InvestigationState {
     startDemo,
     startLive,
     startCurated,
+    startCuratedAssessment,
     retryExtraction,
     navigate,
     returnView,

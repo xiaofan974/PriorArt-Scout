@@ -9,6 +9,60 @@ interface ResearchGapsProps {
 
 export function ResearchGaps({ result, onInspect }: ResearchGapsProps) {
   const { documents, researchGaps } = result;
+  if (result.assessmentGaps) {
+    return (
+      <div className="divide-y divide-line rounded-xl border border-line bg-white">
+        <GapGroup title="No relevant stored passage">
+          <ul className="space-y-3">
+            {result.assessmentGaps.map((gap) => {
+              const feature = result.features.find((item) => item.id === gap.featureId);
+              return (
+                <li key={`${gap.featureId}-${gap.publicationId}`}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="text-[13px] font-medium text-ink">
+                      <span className="mr-2 font-mono text-xs text-partial">{gap.featureId}</span>
+                      {feature?.label}
+                      <span className="ml-2 font-mono text-xs text-ink-3">{gap.publicationId}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => onInspect({ featureId: gap.featureId, documentId: gap.publicationId })}
+                      className="text-xs font-medium text-accent transition-colors duration-150 hover:text-accent-hover focus:outline-none focus-visible:underline">
+                      Inspect gap
+                    </button>
+                  </div>
+                  <p className="mt-1 text-[13px] leading-relaxed text-ink-2">{gap.note}</p>
+                </li>
+              );
+            })}
+          </ul>
+        </GapGroup>
+        <GapGroup title="Details the stored passages do not state">
+          <ul className="space-y-3">
+            {researchGaps.featureNotes.map((note) => {
+              const feature = result.features.find((item) => item.id === note.featureId);
+              return (
+                <li key={note.featureId}>
+                  <p className="text-[13px] font-medium text-ink">
+                    <span className="mr-2 font-mono text-xs text-partial">{note.featureId}</span>
+                    {feature?.label}
+                  </p>
+                  <p className="mt-1 text-[13px] leading-relaxed text-ink-2">{note.note}</p>
+                </li>
+              );
+            })}
+          </ul>
+        </GapGroup>
+        <GapGroup title="Coverage limitations">
+          <ul className="space-y-2">
+            {researchGaps.coverageLimitations.map((item) =>
+            <li key={item} className="text-[13px] leading-relaxed text-ink-2">{item}</li>
+            )}
+          </ul>
+        </GapGroup>
+      </div>
+    );
+  }
   const incomplete = featuresNeedingInvestigation(result);
 
   return (

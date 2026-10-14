@@ -4,11 +4,12 @@ import type { InvestigationResult } from '../../types/investigation';
 
 export function ReportSummary({ result }: {result: InvestigationResult;}) {
   const { features, documents } = result;
-  const needing = featuresNeedingInvestigation(result).length;
+  const curated = Boolean(result.assessments?.length);
+  const needing = curated ? features.length : featuresNeedingInvestigation(result).length;
   const items: {value: React.ReactNode;label: string;}[] = [
   { value: features.length, label: 'invention features analysed' },
-  { value: documents.length, label: 'candidate documents reviewed' },
-  { value: needing, label: 'features requiring further investigation' },
+  { value: documents.length, label: curated ? 'curated publications' : 'candidate documents reviewed' },
+  { value: curated ? result.assessments?.length : needing, label: curated ? 'passage assessments' : 'features requiring further investigation' },
   {
     value:
     <span className="inline-flex items-center gap-2">
@@ -34,7 +35,9 @@ export function ReportSummary({ result }: {result: InvestigationResult;}) {
         )}
       </dl>
       <p className="mt-2 text-[11px] text-ink-3">
-        Illustrative demonstration values. They are not the results of a real patent analysis.
+        {curated ?
+        'Reviewed fixture over a limited patent corpus. Not a model-generated analysis.' :
+        'Illustrative demonstration values. They are not the results of a real patent analysis.'}
       </p>
     </div>);
 

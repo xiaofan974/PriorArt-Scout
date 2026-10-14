@@ -10,9 +10,30 @@ export type InvestigationStatus =
   | 'extracting'
   | 'extracted'
   | 'extraction_failed'
-  | 'retrieved';
+  | 'retrieved'
+  | 'assessed';
 
 export type MatchStatus = 'supported' | 'partial' | 'not_established';
+
+/** Relationship between one invention feature and one stored corpus passage. */
+export type AssessmentLabel = 'explicit_overlap' | 'partial_overlap' | 'insufficient_evidence';
+
+export interface EvidenceAssessment {
+  featureId: string;
+  publicationId: string;
+  passageId: string;
+  assessment: AssessmentLabel;
+  explanation: string;
+  unresolvedDifferences: string[];
+  provenance: string;
+}
+
+/** A feature and publication pair with no relevant stored passage. */
+export interface AssessmentGap {
+  featureId: string;
+  publicationId: string;
+  note: string;
+}
 
 export type RelevanceLevel = 'high' | 'medium' | 'low';
 
@@ -40,7 +61,7 @@ export interface SearchQuery {
 
 export interface SourcePassage {
   id: string;
-  section: 'Abstract' | 'Summary' | 'Description';
+  section: 'Abstract' | 'Summary' | 'Description' | 'Claim';
   text: string;
   /** Section or claim label for a curated patent passage. */
   reference?: string;
@@ -128,6 +149,10 @@ export interface InvestigationResult {
   searchQueries: SearchQuery[];
   documents: CandidateDocument[];
   evidenceMatches: EvidenceMatch[];
+  /** Present only after a reviewed curated assessment. Absent for demonstration and retrieval. */
+  assessments?: EvidenceAssessment[];
+  /** Feature and publication pairs that have no cited passage. */
+  assessmentGaps?: AssessmentGap[];
   researchGaps: ResearchGaps;
   traceSteps: TraceStep[];
   revealAfterStep: RevealAfterStep;
